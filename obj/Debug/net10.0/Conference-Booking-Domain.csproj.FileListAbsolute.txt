@@ -1,0 +1,15 @@
+/Users/cash/Pictures/Conference-Booking-Domain/bin/Debug/net10.0/Conference-Booking-Domain
+/Users/cash/Pictures/Conference-Booking-Domain/bin/Debug/net10.0/Conference-Booking-Domain.deps.json
+/Users/cash/Pictures/Conference-Booking-Domain/bin/Debug/net10.0/Conference-Booking-Domain.runtimeconfig.json
+/Users/cash/Pictures/Conference-Booking-Domain/bin/Debug/net10.0/Conference-Booking-Domain.dll
+/Users/cash/Pictures/Conference-Booking-Domain/bin/Debug/net10.0/Conference-Booking-Domain.pdb
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.AssemblyInfoInputs.cache
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.AssemblyInfo.cs
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.csproj.CoreCompileInputs.cache
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.sourcelink.json
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.dll
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/refint/Conference-Booking-Domain.dll
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.pdb
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/Conference-Booking-Domain.genruntimeconfig.cache
+/Users/cash/Pictures/Conference-Booking-Domain/obj/Debug/net10.0/ref/Conference-Booking-Domain.dll
