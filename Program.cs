@@ -82,7 +82,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine("\n❌ Error:");
+            Console.WriteLine("\n Error:");
             Console.WriteLine(ex.Message);
         }
     }
