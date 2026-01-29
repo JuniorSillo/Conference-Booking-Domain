@@ -1,0 +1,78 @@
+[
+  {
+    "Id": "BOOK-B288D2F39B2",
+    "Room": {
+      "Id": "R109",
+      "Name": "Workshop Room",
+      "Capacity": 25,
+      "Location": "Bitcube HQ, Floor 1",
+      "Amenities": 3,
+      "Bookings": []
+    },
+    "BookedByUserId": "Max",
+    "StartTime": "2026-02-09T07:00:00Z",
+    "EndTime": "2026-02-09T07:15:00Z",
+    "RequestedCapacity": 20,
+    "RequestedAmenities": 1,
+    "Status": 4,
+    "Purpose": "",
+    "IsActiveForConflictCheck": false
+  },
+  {
+    "Id": "BOOK-84BB39E2DC3",
+    "Room": {
+      "Id": "R109",
+      "Name": "Workshop Room",
+      "Capacity": 25,
+      "Location": "Bitcube HQ, Floor 1",
+      "Amenities": 3,
+      "Bookings": []
+    },
+    "BookedByUserId": "Max",
+    "StartTime": "2026-02-09T07:00:00Z",
+    "EndTime": "2026-02-09T07:15:00Z",
+    "RequestedCapacity": 20,
+    "RequestedAmenities": 1,
+    "Status": 4,
+    "Purpose": "",
+    "IsActiveForConflictCheck": false
+  },
+  {
+    "Id": "BOOK-401C575B3FD",
+    "Room": {
+      "Id": "R109",
+      "Name": "Workshop Room",
+      "Capacity": 25,
+      "Location": "Bitcube HQ, Floor 1",
+      "Amenities": 3,
+      "Bookings": []
+    },
+    "BookedByUserId": "Max",
+    "StartTime": "2026-02-09T07:00:00Z",
+    "EndTime": "2026-02-09T07:15:00Z",
+    "RequestedCapacity": 20,
+    "RequestedAmenities": 1,
+    "Status": 3,
+    "Purpose": "",
+    "IsActiveForConflictCheck": false
+  },
+  {
+    "Id": "BOOK-79275FBE799",
+    "Room": {
+      "Id": "R109",
+      "Name": "Workshop Room",
+      "Capacity": 25,
+      "Location": "Bitcube HQ, Floor 1",
+      "Amenities": 3,
+      "Bookings": []
+    },
+    "BookedByUserId": "Max",
+    "StartTime": "2026-02-09T05:00:00Z",
+    "EndTime": "2026-02-09T05:15:00Z",
+    "RequestedCapacity": 20,
+    "RequestedAmenities": 1,
+    "Status": 0,
+    "Purpose": "",
+    "IsActiveForConflictCheck": true
+  }
+]
