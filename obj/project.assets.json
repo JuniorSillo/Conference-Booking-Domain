@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Training Center 1\\Conference-Booking-Domain\\Conference-Booking-Domain.csproj",
+      "projectUniqueName": "C:\\Users\\Training Center 1\\Documents\\CLONES\\Conference-Booking-Domain\\Conference-Booking-Domain.csproj",
       "projectName": "Conference-Booking-Domain",
-      "projectPath": "C:\\Users\\Training Center 1\\Conference-Booking-Domain\\Conference-Booking-Domain.csproj",
+      "projectPath": "C:\\Users\\Training Center 1\\Documents\\CLONES\\Conference-Booking-Domain\\Conference-Booking-Domain.csproj",
       "packagesPath": "C:\\Users\\Training Center 1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Training Center 1\\Conference-Booking-Domain\\obj\\",
+      "outputPath": "C:\\Users\\Training Center 1\\Documents\\CLONES\\Conference-Booking-Domain\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Training Center 1\\AppData\\Roaming\\NuGet\\NuGet.Config"
