@@ -1,10 +1,11 @@
 using System;
+using ConferenceBooking.Domain.Exceptions;
 
 namespace ConferenceBooking.Domain.Models;
 
 /// <summary>
-/// Represents a single booking request/reservation for a room.
-/// Now includes requested capacity and amenities from user input.
+/// Represents a booking in the Conference Room Booking System.
+/// Includes requested capacity and amenities validation.
 /// </summary>
 public record class Booking
 {
@@ -28,9 +29,9 @@ public record class Booking
         RoomAmenity requestedAmenities,
         string? purpose = null)
     {
-        Id = id;
+        Id = id ?? throw new ArgumentNullException(nameof(id));
         Room = room ?? throw new ArgumentNullException(nameof(room));
-        BookedByUserId = bookedByUserId;
+        BookedByUserId = bookedByUserId ?? throw new ArgumentNullException(nameof(bookedByUserId));
         StartTime = startTime;
         EndTime = endTime;
         RequestedCapacity = requestedCapacity;
@@ -49,26 +50,20 @@ public record class Booking
         RoomAmenity requestedAmenities,
         string? purpose = null)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            throw new ArgumentException("Booking ID required.", nameof(id));
-
-        if (room == null)
-            throw new ArgumentNullException(nameof(room));
-
-        if (string.IsNullOrWhiteSpace(bookedByUserId))
-            throw new ArgumentException("User ID required.", nameof(bookedByUserId));
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(room);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(bookedByUserId);
 
         if (startTime >= endTime)
-            throw new ArgumentException("Start time must be before end time.");
+            throw new ArgumentException("Start time must be before end time.", nameof(startTime));
 
         var duration = endTime - startTime;
         if (duration.TotalMinutes < 15)
-            throw new ArgumentException("Booking must be at least 15 minutes long.");
+            throw new ArgumentException("Booking must be at least 15 minutes long.", nameof(endTime));
 
         if (requestedCapacity < 1)
             throw new ArgumentException("Requested capacity must be at least 1.", nameof(requestedCapacity));
 
-        // Validate against room
         if (requestedCapacity > room.Capacity)
             throw new ArgumentException($"Requested capacity ({requestedCapacity}) exceeds room capacity ({room.Capacity}).");
 
@@ -80,11 +75,11 @@ public record class Booking
 
     public void ChangeStatus(BookingStatus newStatus)
     {
-        if (Status == BookingStatus.Completed)
-            throw new InvalidOperationException("Cannot change status of a completed booking.");
+        if (Status == BookingStatus.Completed || Status == BookingStatus.Cancelled)
+            throw new InvalidBookingStateException($"Cannot change status of a booking in final state {Status}.");
 
-        if (newStatus == BookingStatus.Pending)
-            throw new InvalidOperationException("Cannot revert to Pending.");
+        if (newStatus == BookingStatus.Pending && Status != BookingStatus.Pending)
+            throw new InvalidBookingStateException("Cannot revert to Pending state.");
 
         Status = newStatus;
     }
@@ -93,6 +88,8 @@ public record class Booking
     {
         return StartTime < otherEnd && otherStart < EndTime;
     }
+
+    public bool IsActiveForConflictCheck => Status == BookingStatus.Pending || Status == BookingStatus.Approved;
 
     public override string ToString() =>
         $"{Purpose ?? "Untitled"} – {StartTime:yyyy-MM-dd HH:mm} → {EndTime:HH:mm} " +
