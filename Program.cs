@@ -1,6 +1,7 @@
 ﻿using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Domain.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -92,11 +93,7 @@ class Program
 
         Console.Write("\nYour name: ");
         var userName = Console.ReadLine()?.Trim();
-        if (string.IsNullOrWhiteSpace(userName))
-        {
-            Console.WriteLine("Name is required.");
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(userName)) { Console.WriteLine("Name required."); return; }
 
         Console.Write("Booking ID (leave blank to auto-generate): ");
         var bookingIdInput = Console.ReadLine()?.Trim();
@@ -105,87 +102,74 @@ class Program
         var roomId = Console.ReadLine()?.Trim();
 
         Console.Write("Number of people needed: ");
-        if (!int.TryParse(Console.ReadLine(), out int reqCapacity) || reqCapacity < 1)
-        {
-            Console.WriteLine("Invalid capacity – must be a number >= 1.");
-            return;
-        }
+        if (!int.TryParse(Console.ReadLine(), out int reqCapacity) || reqCapacity < 1) { Console.WriteLine("Invalid capacity."); return; }
 
         RoomAmenity reqAmenities = RoomAmenity.None;
         Console.WriteLine("Required amenities (comma-separated numbers or blank): 1=Projector 2=Whiteboard 3=VideoConference 4=SpeakerPhone 5=NaturalLight");
-        var amenInput = Console.ReadLine()?.Trim();
-        if (!string.IsNullOrEmpty(amenInput))
+        var amenStr = Console.ReadLine()?.Trim();
+        if (!string.IsNullOrEmpty(amenStr))
         {
-            foreach (var p in amenInput.Split(','))
-            {
+            foreach (var p in amenStr.Split(','))
                 if (int.TryParse(p.Trim(), out int num) && num >= 1 && num <= 5)
                     reqAmenities |= (RoomAmenity)(1 << (num - 1));
-            }
         }
 
         Console.Write("Date (YYYY-MM-DD): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime baseDate))
-        {
-            Console.WriteLine("Invalid date.");
-            return;
-        }
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime baseDate)) { Console.WriteLine("Invalid date."); return; }
 
         Console.Write("Start time (HH:MM): ");
-        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan startTs))
-        {
-            Console.WriteLine("Invalid time format.");
-            return;
-        }
+        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan startTs)) { Console.WriteLine("Invalid time."); return; }
 
         Console.Write("End time (HH:MM): ");
-        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan endTs))
-        {
-            Console.WriteLine("Invalid time format.");
-            return;
-        }
+        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan endTs)) { Console.WriteLine("Invalid time."); return; }
 
         var start = baseDate.Date + startTs;
         var end = baseDate.Date + endTs;
 
-        if (start >= end)
-        {
-            Console.WriteLine("Error: Start time must be before end time.");
-            return;
-        }
+        if (start >= end) { Console.WriteLine("Start must be before end."); return; }
 
         Console.Write("Purpose (optional): ");
         var purpose = Console.ReadLine()?.Trim();
 
+        // FINAL STRICT CHECK: reload file and block if conflict
+        Console.WriteLine("\nChecking latest availability from file...");
+        bool isFree = await _service.IsSlotAvailableAsync(roomId, start.ToUniversalTime(), end.ToUniversalTime());
+
+        if (!isFree)
+        {
+            Console.WriteLine("\nCannot book - there is already a meeting at that time in this room.");
+            return;
+        }
+
+        Console.WriteLine("Slot is free - proceeding...");
+
         try
         {
             var booking = await _service.SubmitBookingRequestAsync(
-                bookingIdInput,
-                roomId,
-                userName,
-                start.ToUniversalTime(),
-                end.ToUniversalTime(),
-                reqCapacity,
-                reqAmenities,
-                purpose);
+                bookingIdInput, roomId, userName, start.ToUniversalTime(), end.ToUniversalTime(),
+                reqCapacity, reqAmenities, purpose);
 
-            // Highlight the booking ID clearly after creation
+            // Prominently show the ID
             Console.WriteLine("\n╔════════════════════════════════════════════╗");
-            Console.WriteLine("║          BOOKING CREATED SUCCESSFULLY      ║");
-            Console.WriteLine($"║ Booking ID: {booking.Id,-35} ║");
+            Console.WriteLine("║        BOOKING CREATED SUCCESSFULLY        ║");
+            Console.WriteLine($"║ Your Booking ID: {booking.Id,-30} ║");
             Console.WriteLine("╚════════════════════════════════════════════╝");
-            Console.WriteLine($"Details: {booking}");
-            Console.WriteLine("Changes saved to bookings.json");
+            Console.WriteLine($"Full details: {booking}");
 
             Console.Write("\nSimulate status progression now? (y/n): ");
             if (Console.ReadLine()?.Trim().ToLower() == "y")
             {
                 _service.SimulateBookingProgress(booking.Id);
-                Console.WriteLine($"\nReminder: Your Booking ID is {booking.Id} (use this to cancel or simulate again).");
+                Console.WriteLine($"\nReminder: Your Booking ID is {booking.Id} (save this for cancel/simulate).");
             }
+        }
+        catch (BookingConflictException bcex)
+        {
+            Console.WriteLine($"\nConflict detected: {bcex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"\nBooking failed: {ex.Message}");
+            Console.WriteLine($"\nError: {ex.Message}");
         }
     }
 
@@ -197,7 +181,7 @@ class Program
             return;
         }
 
-        Console.WriteLine("\nCurrent Bookings (use the ID to cancel):");
+        Console.WriteLine("\nCurrent Bookings (copy the ID to cancel):");
         foreach (var b in _service.Bookings)
         {
             Console.WriteLine($"ID: {b.Id} | {b}");
@@ -208,7 +192,7 @@ class Program
 
         if (string.IsNullOrWhiteSpace(id))
         {
-            Console.WriteLine("ID is required.");
+            Console.WriteLine("ID required.");
             return;
         }
 
