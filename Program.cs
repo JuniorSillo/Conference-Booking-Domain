@@ -2,53 +2,52 @@
 using ConferenceBooking.Domain.Services;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 class Program
 {
     private static readonly BookingService _service = new BookingService();
 
-    static void Main()
+    static async Task Main(string[] args)
     {
-        Console.WriteLine("Welcome to Conference Booking System Demo");
-        Console.WriteLine("10 pre-defined rooms are loaded. You can choose one by ID.\n");
+        Console.WriteLine("Conference Room Booking System – Assignment 1.3");
+        Console.WriteLine("Loading data...\n");
 
-        LoadPreDefinedRooms();
+        await _service.InitializeAsync();
+
+        LoadRoomsFromList();
+
+        Console.WriteLine("\nReady. 10 rooms are available.\n");
 
         while (true)
         {
-            Console.WriteLine("\n=== MENU ===");
-            Console.WriteLine("1. View all available rooms");
-            Console.WriteLine("2. Make a new booking (input your name, capacity needed, amenities required)");
-            Console.WriteLine("3. View all bookings");
-            Console.WriteLine("4. Exit");
-            Console.Write("Choose option (1-4): ");
+            Console.WriteLine("\n=== MAIN MENU ===");
+            Console.WriteLine("1. View all rooms");
+            Console.WriteLine("2. Make a new booking");
+            Console.WriteLine("3. Cancel an existing booking");
+            Console.WriteLine("4. Simulate status progression");
+            Console.WriteLine("5. View all bookings");
+            Console.WriteLine("6. Exit");
 
-            var choice = Console.ReadLine()?.Trim();
+            Console.Write("\nChoose option (1-6): ");
+            var input = Console.ReadLine()?.Trim();
 
-            switch (choice)
+            switch (input)
             {
-                case "1":
-                    ViewRooms();
-                    break;
-                case "2":
-                    MakeBooking();
-                    break;
-                case "3":
-                    ViewBookings();
-                    break;
-                case "4":
-                    Console.WriteLine("Goodbye!");
-                    return;
-                default:
-                    Console.WriteLine("Invalid choice. Try 1-4.");
-                    break;
+                case "1": ViewRooms(); break;
+                case "2": await MakeBookingAsync(); break;
+                case "3": await CancelBookingAsync(); break;
+                case "4": SimulateProgress(); break;
+                case "5": ViewBookings(); break;
+                case "6": Console.WriteLine("Goodbye!"); return;
+                default: Console.WriteLine("Invalid choice."); break;
             }
         }
     }
 
-    static void LoadPreDefinedRooms()
+    static void LoadRoomsFromList()
     {
-        var predefined = new[]
+        var rooms = new List<(string Id, string Name, int Capacity, string Location, RoomAmenity Amenities)>
         {
             ("R101", "Executive Boardroom", 12, "Bitcube HQ, Floor 4", RoomAmenity.Projector | RoomAmenity.VideoConference | RoomAmenity.NaturalLight),
             ("R102", "Meeting Room 1", 8, "Bitcube HQ, Floor 3", RoomAmenity.Whiteboard | RoomAmenity.SpeakerPhone),
@@ -62,17 +61,20 @@ class Program
             ("R110", "Quiet Room", 2, "Bitcube HQ, Floor 5 Quiet Zone", RoomAmenity.None)
         };
 
-        foreach (var (id, name, cap, loc, amen) in predefined)
+        foreach (var (id, name, capacity, location, amenities) in rooms)
         {
             try
             {
-                var room = ConferenceRoom.Create(id, name, cap, loc, amen);
+                var room = ConferenceRoom.Create(id, name, capacity, location, amenities);
                 _service.AddRoom(room);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to add room {id}: {ex.Message}");
+            }
         }
 
-        Console.WriteLine($"Loaded {predefined.Length} pre-defined rooms.");
+        Console.WriteLine($"Loaded {rooms.Count} rooms from list.");
     }
 
     static void ViewRooms()
@@ -80,15 +82,15 @@ class Program
         Console.WriteLine("\nAvailable Rooms:");
         foreach (var r in _service.Rooms)
         {
-            Console.WriteLine($"  ID: {r.Id} | {r.Name} | Cap: {r.Capacity} | Loc: {r.Location} | Amenities: {r.Amenities}");
+            Console.WriteLine($"  {r.Id} - {r.Name} (Cap: {r.Capacity}, Loc: {r.Location}, Amenities: {r.Amenities})");
         }
     }
 
-    static void MakeBooking()
+    static async Task MakeBookingAsync()
     {
         ViewRooms();
 
-        Console.Write("\nEnter your name: ");
+        Console.Write("\nYour name: ");
         var userName = Console.ReadLine()?.Trim();
         if (string.IsNullOrWhiteSpace(userName))
         {
@@ -96,46 +98,58 @@ class Program
             return;
         }
 
-        Console.Write("Enter booking ID (e.g. BOOK-001): ");
-        var bookingId = Console.ReadLine()?.Trim();
+        Console.Write("Booking ID (leave blank to auto-generate): ");
+        var bookingIdInput = Console.ReadLine()?.Trim();
 
-        Console.Write("Enter room ID to book (from list above): ");
+        Console.Write("Room ID (choose from above): ");
         var roomId = Console.ReadLine()?.Trim();
 
-        Console.Write("How many people (capacity needed): ");
+        Console.Write("Number of people needed: ");
         if (!int.TryParse(Console.ReadLine(), out int reqCapacity) || reqCapacity < 1)
         {
-            Console.WriteLine("Invalid capacity.");
+            Console.WriteLine("Invalid capacity – must be a number >= 1.");
             return;
         }
 
         RoomAmenity reqAmenities = RoomAmenity.None;
-        Console.WriteLine("Select required amenities (numbers separated by comma, or press Enter for none):");
-        Console.WriteLine("  1 = Projector    2 = Whiteboard    3 = VideoConference    4 = SpeakerPhone    5 = NaturalLight");
+        Console.WriteLine("Required amenities (comma-separated numbers or blank): 1=Projector 2=Whiteboard 3=VideoConference 4=SpeakerPhone 5=NaturalLight");
         var amenInput = Console.ReadLine()?.Trim();
         if (!string.IsNullOrEmpty(amenInput))
         {
-            var parts = amenInput.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var p in parts)
+            foreach (var p in amenInput.Split(','))
             {
                 if (int.TryParse(p.Trim(), out int num) && num >= 1 && num <= 5)
-                {
                     reqAmenities |= (RoomAmenity)(1 << (num - 1));
-                }
             }
         }
 
-        Console.Write("Start time (YYYY-MM-DD HH:MM): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime start))
+        Console.Write("Date (YYYY-MM-DD): ");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime baseDate))
         {
-            Console.WriteLine("Invalid start time.");
+            Console.WriteLine("Invalid date.");
             return;
         }
 
-        Console.Write("End time (YYYY-MM-DD HH:MM): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime end))
+        Console.Write("Start time (HH:MM): ");
+        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan startTs))
         {
-            Console.WriteLine("Invalid end time.");
+            Console.WriteLine("Invalid time format.");
+            return;
+        }
+
+        Console.Write("End time (HH:MM): ");
+        if (!TimeSpan.TryParse(Console.ReadLine(), out TimeSpan endTs))
+        {
+            Console.WriteLine("Invalid time format.");
+            return;
+        }
+
+        var start = baseDate.Date + startTs;
+        var end = baseDate.Date + endTs;
+
+        if (start >= end)
+        {
+            Console.WriteLine("Error: Start time must be before end time.");
             return;
         }
 
@@ -144,41 +158,107 @@ class Program
 
         try
         {
-            var booking = _service.SubmitBookingRequest(
-                bookingId ?? "AUTO-" + Guid.NewGuid().ToString("N").Substring(0, 8),
-                roomId, userName, start.ToUniversalTime(), end.ToUniversalTime(),
-                reqCapacity, reqAmenities, purpose);
+            var booking = await _service.SubmitBookingRequestAsync(
+                bookingIdInput,
+                roomId,
+                userName,
+                start.ToUniversalTime(),
+                end.ToUniversalTime(),
+                reqCapacity,
+                reqAmenities,
+                purpose);
 
-            Console.WriteLine("\nBooking SUCCESSFULLY created:");
-            Console.WriteLine($"  {booking}");
+            // Highlight the booking ID clearly after creation
+            Console.WriteLine("\n╔════════════════════════════════════════════╗");
+            Console.WriteLine("║          BOOKING CREATED SUCCESSFULLY      ║");
+            Console.WriteLine($"║ Booking ID: {booking.Id,-35} ║");
+            Console.WriteLine("╚════════════════════════════════════════════╝");
+            Console.WriteLine($"Details: {booking}");
+            Console.WriteLine("Changes saved to bookings.json");
 
-            Console.Write("\nSimulate status progress now? (y/n): ");
+            Console.Write("\nSimulate status progression now? (y/n): ");
             if (Console.ReadLine()?.Trim().ToLower() == "y")
             {
                 _service.SimulateBookingProgress(booking.Id);
+                Console.WriteLine($"\nReminder: Your Booking ID is {booking.Id} (use this to cancel or simulate again).");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("\nBooking FAILED:");
-            Console.WriteLine($"  {ex.Message}");
+            Console.WriteLine($"\nBooking failed: {ex.Message}");
         }
     }
 
-    
-
-    static void ViewBookings()
+    static async Task CancelBookingAsync()
     {
         if (!_service.Bookings.Any())
         {
-            Console.WriteLine("No bookings yet.");
+            Console.WriteLine("No bookings to cancel.");
             return;
         }
 
-        Console.WriteLine("\nAll Bookings:");
+        Console.WriteLine("\nCurrent Bookings (use the ID to cancel):");
         foreach (var b in _service.Bookings)
         {
-            Console.WriteLine($"  {b}");
+            Console.WriteLine($"ID: {b.Id} | {b}");
+        }
+
+        Console.Write("\nEnter Booking ID to cancel: ");
+        var id = Console.ReadLine()?.Trim();
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            Console.WriteLine("ID is required.");
+            return;
+        }
+
+        try
+        {
+            await _service.CancelBookingAsync(id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Cancel failed: {ex.Message}");
+        }
+    }
+
+    static void SimulateProgress()
+    {
+        if (!_service.Bookings.Any())
+        {
+            Console.WriteLine("No bookings available.");
+            return;
+        }
+
+        Console.WriteLine("\nCurrent Bookings:");
+        foreach (var b in _service.Bookings)
+            Console.WriteLine($"ID: {b.Id} | {b}");
+
+        Console.Write("\nEnter Booking ID to simulate: ");
+        var id = Console.ReadLine()?.Trim();
+
+        try
+        {
+            _service.SimulateBookingProgress(id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Simulation failed: {ex.Message}");
+        }
+    }
+
+    static void ViewBookings()
+    {
+        Console.WriteLine("\nCurrent Bookings:");
+        if (!_service.Bookings.Any())
+        {
+            Console.WriteLine("  (No bookings yet)");
+            return;
+        }
+
+        foreach (var b in _service.Bookings)
+        {
+            Console.WriteLine($"ID: {b.Id} | {b}");
         }
     }
 }
