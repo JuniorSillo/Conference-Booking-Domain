@@ -6,7 +6,7 @@ public class SeedData
     {
       List<ConferenceRoom> ConferenceRooms = new List<ConferenceRoom>()
       {
-        new ConferenceRoom ("CR001", "Ocean View", 20, "1st Floor", RoomAmenity.Projector | RoomAmenity.Whiteboard, RoomType.Premium),
+        new ConferenceRoom ("CR001", "Ocean View", 20, "1st Floor", RoomType.Premium),
       };
       return ConferenceRooms;
     }
