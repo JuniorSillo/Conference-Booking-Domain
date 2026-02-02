@@ -1,49 +1,41 @@
-namespace ConferenceBooking.Logic;
 using ConferenceBooking.Domain.Models;
+using ConferenceBooking.Domain.Exceptions;
+
+namespace ConferenceBooking.Logic;
 
 public class BookingManager
 {
-    // All the business logic for managing bookings would go here
     private readonly List<Booking> _bookings = new();
 
-    public IReadOnlyList<Booking> GetBookings()
-    {
-        return _bookings.ToList();
-    }
+    public IReadOnlyList<Booking> GetBookings() => _bookings.AsReadOnly();
 
     public Booking CreateBooking(BookingRequest request)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request), "Booking request cannot be null.");
-            }
-            if(request.StartTime >= request.EndTime)
-            {
-                throw new ArgumentException("End time must be after start time.");
-            }
-            bool overlaps = _bookings.Any(b =>
-                b.Room == request.Room &&
-                b.BookingStatus == BookingStatus.Completed &&
-                request.StartTime < b.EndTime &&
-                request.EndTime > b.StartTime
-                );
-                if (overlaps)
-                {
-                    throw new BookingConflictException();
-                }
+        ArgumentNullException.ThrowIfNull(request);
 
-                Booking booking = new Booking(
-                    request.Room,
-                    request.StartTime,
-                    request.EndTime
-                );
+        if (request.StartTime >= request.EndTime)
+            throw new ArgumentException("End time must be after start time.");
 
-                booking.Complete();
-                _bookings.Add(booking);
+        // Check for real overlap with active bookings
+        bool overlaps = _bookings.Any(b =>
+            b.Room.RoomID == request.Room.RoomID &&
+            b.Status is BookingStatus.Approved or BookingStatus.Pending &&
+            request.StartTime < b.EndTime &&
+            request.EndTime > b.StartTime);
 
+        if (overlaps)
+            throw new BookingConflictException("Time slot overlaps with an existing booking.");
 
-                return booking;
+        var booking = Booking.Create(
+            request.Room,
+            request.StartTime,
+            request.EndTime,
+            request.Purpose);
 
-            
-        }
+        // For demo: auto-approve (in real app → would go to approval flow)
+        booking.UpdateStatus(BookingStatus.Approved);
+
+        _bookings.Add(booking);
+        return booking;
     }
+}
