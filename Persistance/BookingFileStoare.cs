@@ -1,27 +1,31 @@
 using System.Text.Json;
 using ConferenceBooking.Domain.Models;
 
+namespace ConferenceBooking.Persistence;
+
 public class BookingFileStore
 {
-    // Implementation for storing bookings in a file would go here
     private readonly string _filePath;
 
     public BookingFileStore(string filePath)
     {
-        _filePath = filePath;
+        _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
     }
+
     public async Task SaveAsync(IEnumerable<Booking> bookings)
     {
-        string json = JsonSerializer.Serialize(bookings);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string json = JsonSerializer.Serialize(bookings, options);
         await File.WriteAllTextAsync(_filePath, json);
     }
+
     public async Task<List<Booking>> LoadAsync()
     {
-        if(!File.Exists(_filePath))
-        return new List<Booking>();
+        if (!File.Exists(_filePath))
+            return new List<Booking>();
 
         string json = await File.ReadAllTextAsync(_filePath);
         return JsonSerializer.Deserialize<List<Booking>>(json)
-        ?? new List<Booking>();
+               ?? new List<Booking>();
     }
-}   
+}
