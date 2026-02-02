@@ -1,48 +1,52 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ConferenceBooking.Domain.Models;
 
 public record class ConferenceRoom
 {
-    public string RoomID { get; init; }               
-    public string RoomName { get; private set; }      
-    public int Capacity { get; private set; }     
+    public string RoomID { get; init; }
+    public string RoomName { get; private set; }
+    public int Capacity { get; private set; }
     public RoomType RoomType { get; private set; }
     public RoomAmenity Amenities { get; private set; }
-    //Name,RoomTyepe and Capacity
-    // Private constructor 
-    private ConferenceRoom(string roomid, string roomname, int capacity, string location, RoomAmenity amenities, RoomType roomtype = RoomType.Standard)
+
+    // Private constructor
+    private ConferenceRoom(
+        string roomId,
+        string roomName,
+        int capacity,
+        RoomType roomType,
+        RoomAmenity amenities)
     {
-        RoomID = roomid;
-        RoomName = roomname;
+        RoomID = roomId;
+        RoomName = roomName;
         Capacity = capacity;
-        RoomType = roomtype;
-        // Location = location;
+        RoomType = roomType;
         Amenities = amenities;
     }
 
     public static ConferenceRoom Create(
-        // string roomid,
-        string roomname,
+        string roomId,
+        string roomName,
         int capacity,
-        string location,
-        RoomType roomtype = RoomType.Standard)
+        RoomType roomType = RoomType.Standard,
+        RoomAmenity amenities = RoomAmenity.None)
     {
-        // if (string.IsNullOrWhiteSpace(roomid))
-        //     throw new ArgumentException("Room ID cannot be empty.", nameof(roomid));
+        if (string.IsNullOrWhiteSpace(roomId))
+            throw new ArgumentException("Room ID cannot be empty.", nameof(roomId));
 
-        if (string.IsNullOrWhiteSpace(roomname))
-            throw new ArgumentException("Room name cannot be empty.", nameof(roomname));
+        if (string.IsNullOrWhiteSpace(roomName))
+            throw new ArgumentException("Room name cannot be empty.", nameof(roomName));
 
         if (capacity < 1)
-            throw new ArgumentException("Capacity must be at least 1 person.", nameof(capacity));
+            throw new ArgumentException("Capacity must be at least 1.", nameof(capacity));
 
-        // if (string.IsNullOrWhiteSpace(location))
-        //     throw new ArgumentException("Location cannot be empty.", nameof(location));
-
-        return new ConferenceRoom(roomid, roomname.Trim(), capacity, location.Trim(), amenities, roomtype);
+        return new ConferenceRoom(
+            roomId.Trim(),
+            roomName.Trim(),
+            capacity,
+            roomType,
+            amenities);
     }
 
     public void UpdateName(string newName)
