@@ -1,0 +1,41 @@
+[
+  {
+    "Id": "8fc6898c-187a-4f6d-be49-6acd0039311e",
+    "Room": {
+      "RoomID": "CR001",
+      "RoomName": "Ocean View",
+      "Capacity": 20,
+      "RoomType": 1,
+      "Amenities": 117
+    },
+    "StartTime": "2026-02-05T09:00:50.004Z",
+    "EndTime": "2026-02-05T09:15:50.004Z",
+    "Status": 1
+  },
+  {
+    "Id": "cef1341a-be57-4fde-87ac-3f92c22b2da9",
+    "Room": {
+      "RoomID": "CR003",
+      "RoomName": "City Skyline",
+      "Capacity": 8,
+      "RoomType": 2,
+      "Amenities": 100
+    },
+    "StartTime": "2026-02-05T09:00:50.004Z",
+    "EndTime": "2026-02-05T09:15:50.004Z",
+    "Status": 1
+  },
+  {
+    "Id": "7ddac0d8-a4de-44b1-bd9c-f6f0a5902ff4",
+    "Room": {
+      "RoomID": "CR001",
+      "RoomName": "Ocean View",
+      "Capacity": 20,
+      "RoomType": 1,
+      "Amenities": 117
+    },
+    "StartTime": "2026-02-06T12:00:00.385Z",
+    "EndTime": "2026-02-06T12:15:00.385Z",
+    "Status": 1
+  }
+]
