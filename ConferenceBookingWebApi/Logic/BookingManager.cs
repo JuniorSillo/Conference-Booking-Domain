@@ -1,11 +1,48 @@
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Domain.Exceptions;
+using ConferenceBooking.Persistence;
 using ConferenceBooking.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace ConferenceBooking.Logic;
 
 public class BookingManager
 {
     private readonly List<Booking> _bookings = new();
+    private readonly BookingFileStore _store;
+
+    public BookingManager(BookingFileStore store)
+    {
+        _store = store ?? throw new ArgumentNullException(nameof(store));
+    }
+
+    // Called once at startup from Program.cs
+    public async Task LoadBookingsAsync()
+    {
+        try
+        {
+            var loaded = await _store.LoadAsync();
+
+            // DIRECTLY add loaded bookings (no re-validation or CreateBooking)
+            // Assume persisted data is valid/trusted
+            foreach (var booking in loaded)
+            {
+                if (booking != null)
+                {
+                    _bookings.Add(booking);
+                }
+            }
+
+            Console.WriteLine($"Loaded {loaded.Count} bookings from file at startup.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading bookings at startup: {ex.Message}");
+        }
+    }
 
     public IReadOnlyList<Booking> GetBookings() => _bookings.AsReadOnly();
 
@@ -16,11 +53,14 @@ public class BookingManager
         ArgumentNullException.ThrowIfNull(request);
 
         if (request.StartTime >= request.EndTime)
-            throw new ArgumentException("End time must be after start time.");
+            throw new InvalidBookingTimeException("End time must be after start time.");
+
+        if (request.StartTime < DateTime.Now)
+            throw new InvalidBookingTimeException("Cannot book in the past.");
 
         bool overlaps = _bookings.Any(b =>
             b.Room.RoomID == request.Room.RoomID &&
-            b.Status is BookingStatus.Approved or BookingStatus.Pending &&
+            b.Status is BookingStatus.Pending or BookingStatus.Approved &&
             request.StartTime < b.EndTime &&
             request.EndTime > b.StartTime);
 
@@ -40,12 +80,12 @@ public class BookingManager
         if (booking == null) return false;
 
         if (newStart >= newEnd)
-            throw new ArgumentException("End time must be after start time.");
+            throw new InvalidBookingTimeException("End time must be after start time.");
 
         bool overlaps = _bookings.Any(b =>
             b.Id != id &&
             b.Room.RoomID == booking.Room.RoomID &&
-            b.Status is BookingStatus.Approved or BookingStatus.Pending &&
+            b.Status is BookingStatus.Pending or BookingStatus.Approved &&
             newStart < b.EndTime &&
             newEnd > b.StartTime);
 
@@ -87,7 +127,7 @@ public class BookingManager
         return allRooms.Where(room =>
             !_bookings.Any(b =>
                 b.Room.RoomID == room.RoomID &&
-                b.Status is BookingStatus.Approved or BookingStatus.Pending &&
+                b.Status is BookingStatus.Pending or BookingStatus.Approved &&
                 start < b.EndTime &&
                 end > b.StartTime)
         ).ToList().AsReadOnly();
