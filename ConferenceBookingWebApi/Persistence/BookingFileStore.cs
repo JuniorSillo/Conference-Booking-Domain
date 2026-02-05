@@ -1,16 +1,18 @@
-using System.Text.Json;
-using Newtonsoft.Json;
 using ConferenceBooking.Domain.Models;
+using ConferenceBooking.Logic;
+using Newtonsoft.Json;
 
 namespace ConferenceBooking.Persistence;
 
 public class BookingFileStore
 {
     private readonly string _filePath;
+    private readonly BookingManager _manager;  
 
-    public BookingFileStore(string filePath)
+    public BookingFileStore(string filePath, BookingManager manager)
     {
         _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+        _manager = manager ?? throw new ArgumentNullException(nameof(manager));
     }
 
     public async Task SaveAsync(IEnumerable<Booking> bookings)

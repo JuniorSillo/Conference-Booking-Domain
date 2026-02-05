@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj": {}
+    "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj": {}
   },
   "projects": {
-    "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj": {
+    "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
+        "projectUniqueName": "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
         "projectName": "ConferenceBookingWebApi",
-        "projectPath": "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
+        "projectPath": "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
         "packagesPath": "/Users/cash/.nuget/packages/",
-        "outputPath": "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/obj/",
+        "outputPath": "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/cash/.nuget/NuGet/NuGet.Config"

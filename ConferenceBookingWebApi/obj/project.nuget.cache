@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "yoQD+M/xm5c=",
+  "dgSpecHash": "q1ARTBQlKtI=",
   "success": true,
-  "projectFilePath": "/Users/cash/Pictures/Conference-Booking-Demo/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
+  "projectFilePath": "/Users/cash/Pictures/Demo/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
   "expectedPackageFiles": [
     "/Users/cash/.nuget/packages/microsoft.aspnetcore.jsonpatch/8.0.0/microsoft.aspnetcore.jsonpatch.8.0.0.nupkg.sha512",
     "/Users/cash/.nuget/packages/microsoft.aspnetcore.mvc.newtonsoftjson/8.0.0/microsoft.aspnetcore.mvc.newtonsoftjson.8.0.0.nupkg.sha512",
