@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
@@ -29,7 +30,9 @@ public class BookingsController : ControllerBase
         _seedData = seedData ?? throw new ArgumentNullException(nameof(seedData));
     }
 
+    // GET: api/bookings - List all bookings (Admin only)
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public ActionResult<IEnumerable<BookingDto>> GetAllBookings()
     {
         var bookings = _manager.GetBookings();
@@ -52,7 +55,9 @@ public class BookingsController : ControllerBase
         return Ok(dtos);
     }
 
+    // GET: api/bookings/{id} - Get single booking (all authenticated users)
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Employee,Admin,Receptionist,FacilitiesManager")]
     public ActionResult<BookingDto> GetBooking(Guid id)
     {
         var booking = _manager.GetBookingById(id);
@@ -78,7 +83,9 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
+    // POST: api/bookings - Create new booking (Employee only)
     [HttpPost]
+    [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> CreateBooking([FromBody] CreateBookingRequest request)
     {
         if (!ModelState.IsValid)
@@ -118,7 +125,9 @@ public class BookingsController : ControllerBase
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, dto);
     }
 
+    // PUT: api/bookings/{id} - Update booking time (Employee only)
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> UpdateBooking(Guid id, [FromBody] UpdateBookingRequest request)
     {
         if (!ModelState.IsValid)
@@ -153,7 +162,9 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
+    // POST: api/bookings/{id}/cancel - Cancel booking (Employee only)
     [HttpPost("{id:guid}/cancel")]
+    [Authorize(Roles = "Employee")]
     public async Task<IActionResult> CancelBooking(Guid id)
     {
         bool success = _manager.CancelBooking(id);
@@ -164,7 +175,9 @@ public class BookingsController : ControllerBase
         return Ok(new { Message = "Booking cancelled successfully" });
     }
 
+    // DELETE: api/bookings/{id} - Delete booking (Admin only)
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBooking(Guid id)
     {
         bool success = _manager.DeleteBooking(id);
