@@ -56,4 +56,6 @@ public record Booking
         $"  Amenities: {Room.Amenities}\n" +
         $"  Time: {StartTime:ddd, dd MMM yyyy HH:mm} – {EndTime:HH:mm}\n" +
         $"  Status: {Status}";
+
+    protected Booking() { }
 }

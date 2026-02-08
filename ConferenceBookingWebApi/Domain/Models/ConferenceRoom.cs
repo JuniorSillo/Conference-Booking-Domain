@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 using Newtonsoft.Json;  // for JsonConstructor
+using System.ComponentModel.DataAnnotations;
 
 namespace ConferenceBooking.Domain.Models;
 
 public record ConferenceRoom
 {
+    [Key]
     public string RoomID { get; init; } = string.Empty;
     public string RoomName { get; private set; } = string.Empty;
     public int Capacity { get; private set; }
