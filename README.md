@@ -1,48 +1,61 @@
-# Conference Booking System API
 
+# Conference Booking System API
 
 
 ## Overview
 
-This project implements a robust, scalable RESTful API for the Conference Booking System using ASP.NET Core Web API. It exposes the domain logic from previous assignments over HTTP, ensuring clear separation of concerns, thin controllers, and reuse of existing business rules. The API supports booking operations with validation, conflict detection, and persistence using JSON files. It is designed for high reliability, with explicit error handling and meaningful HTTP status codes. 
+This project implements a robust, scalable, and **secure** RESTful API for the Conference Booking System using ASP.NET Core Web API (.NET 8). It exposes domain logic from previous assignments over HTTP with clear separation of concerns, thin controllers, centralized business rules, async persistence, explicit error handling, and role-based authorization.
 
-Built with modern .NET 8 practices, the API is testable via Swagger UI and adheres to professional standards for API design, including DTOs for input/output, data annotations for validation, and a consistent error response format.
+The API now includes full authentication and authorization using **ASP.NET Core Identity** and **JWT**, enforcing role-based access for all booking operations. It is designed for high reliability, security, and future extensibility (e.g., database-backed ownership).
 
 ### Project Context
 
-This is the implementation for **Assignment 2.2: Strengthening the API Contract**. It builds on a clean domain model with centralized business rules, async file persistence, and explicit error handling. The transition from console to HTTP maintains the core logic without duplication, focusing on API boundary safety, validation, and response precision.
+This implementation covers **Assignments 2.1 through 2.4**:
+- 2.1: Domain model & business logic
+- 2.2: API contract with DTOs, validation, precise status codes
+- 2.3: Centralized failure handling & middleware
+- 2.4: Authentication (JWT), authorization (roles), and secure endpoints
 
 ## Features
 
-- **Booking Operations**:
-  - Create bookings with automatic approval (for demo)
-  - List all bookings
-  - Get booking by ID
-  - Update booking times (with conflict checks)
-  - Cancel bookings (status change)
-  - Delete bookings
+- **Booking Operations** (secured):
+  - Create bookings (Employee)
+  - List all bookings (Admin)
+  - Get booking by ID (all authenticated roles)
+  - Update booking time (Employee)
+  - Cancel own booking (Employee)
+  - Delete booking (Admin)
 
 - **Room Operations**:
   - List all rooms (seeded with 10 varied rooms)
-  - Get available rooms for a given time slot (filters based on bookings)
+  - Get available rooms for a given time slot
+
+- **Authentication & Authorization**:
+  - Login endpoint (`POST /api/auth/login`) → returns JWT
+  - Role-based access: Employee, Admin, Receptionist, FacilitiesManager
+  - Protected endpoints return 401 (unauthenticated) or 403 (unauthorized)
 
 - **Advanced Functionality**:
-  - **Double Booking Prevention**: Automatic conflict detection for overlapping times on the same room (throws 409 Conflict)
-  - **Validation**: Input validation using DataAnnotations (400 Bad Request for invalid data)
-  - **Error Handling**: Consistent error responses with error codes, messages, and details (e.g., 422 for domain violations, 404 for not found)
-  - **Persistence**: Async JSON file storage for bookings (loads on startup, saves on changes)
+  - Double-booking prevention (409 Conflict)
+  - Input validation (400 Bad Request)
+  - Centralized error handling with categories (ClientValidation, BusinessRuleViolation, UnexpectedError)
+  - Async JSON file persistence (loads on startup, saves on changes)
+  - Structured logging of failures (no sensitive data exposed)
 
 - **Technical Highlights**:
-  - Thin controllers: Coordinate DTO mapping, validation, and service calls only
-  - DTOs for API contract: Separate from domain models to protect internal structures
-  - Precise HTTP status codes: 201 Created, 200 OK, 204 No Content, 400 Bad Request, 404 Not Found, 409 Conflict, 422 Unprocessable Entity, 500 Internal Server Error
-  - Swagger integration: Built-in API documentation and testing
+  - Thin controllers with centralized middleware
+  - DTOs for input/output contract safety
+  - ASP.NET Core Identity + EF Core (SQLite) for users/roles
+  - JWT Bearer authentication
+  - Swagger with Bearer token support
+  - Precise HTTP status codes (401, 403, 409, etc.)
 
 ## Installation
 
 ### Prerequisites
 - .NET 8.0 SDK or higher
-- Git (for cloning the repository)
+- Git
+- EF Core CLI tools (`dotnet tool install --global dotnet-ef`)
 
 ### Setup
 
@@ -52,121 +65,127 @@ This is the implementation for **Assignment 2.2: Strengthening the API Contract*
    cd Conference-Booking-Demo/ConferenceBookingWebApi
    ```
 
-2. **Restore dependencies**:
+2. **Install dependencies**:
    ```
    dotnet restore
    ```
 
-3. **Build the project**:
+3. **Apply database migrations** (creates Identity tables):
    ```
-   dotnet build
+   dotnet ef migrations add IdentitySetup
+   dotnet ef database update
    ```
 
-4. **Run the API**:
+4. **Build & run**:
    ```
+   dotnet build
    dotnet run
    ```
 
-   - The API will start on `https://localhost:5051` (or your configured port)
-   - Open Swagger UI at `https://localhost:5051/swagger`
+   - API runs on `https://localhost:5051` (or your configured port)
+   - Swagger UI: `https://localhost:5051/swagger`
 
 ## Usage
 
-### Running the API
+### Authentication Flow
 
-- Start the server with `dotnet run`.
-- Use Swagger UI (`/swagger`) to explore and test endpoints.
-- Bookings are persisted in `bookings.json` in the project root (loads on startup, saves on changes).
+1. **Login** (POST `/api/auth/login`):
+   ```json
+   {
+     "email": "admin@demo.com",
+     "password": "Pass123!"
+   }
+   ```
+   Response:
+   ```json
+   {
+     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+     "expires": "2026-02-09T09:21:00Z"
+   }
+   ```
 
-### Testing Examples
+2. **Use the token**:
+   - Header: `Authorization: Bearer {token}`
+   - Try protected endpoints (e.g., GET `/api/Bookings`)
 
-1. **List Rooms** (GET `/api/Rooms`):
-   - Returns 10 seeded rooms with details (capacity, type, amenities).
+### Seeded Users (for testing)
 
-2. **Create Booking** (POST `/api/Bookings`):
-   - Body:
-     ```
-     {
-       "roomID": "CR001",
-       "startTime": "2026-02-05T10:00:00Z",
-       "endTime": "2026-02-05T11:00:00Z"
-     }
-     ```
-   - Success: 201 Created with booking details
-   - Overlap: 409 Conflict with error message
+| Email                  | Password   | Role              |
+|------------------------|------------|-------------------|
+| employee@demo.com      | Pass123!   | Employee          |
+| admin@demo.com         | Pass123!   | Admin             |
+| reception@demo.com     | Pass123!   | Receptionist      |
+| facilities@demo.com    | Pass123!   | FacilitiesManager |
 
-3. **List Bookings** (GET `/api/Bookings`):
-   - Returns all bookings in DTO format.
+### Protected Endpoints Summary
 
-4. **Get Booking by ID** (GET `/api/Bookings/{id}`):
-   - Use ID from create response.
-
-5. **Update Booking** (PUT `/api/Bookings/{id}`):
-   - Body:
-     ```
-     {
-       "startTime": "2026-02-05T11:00:00Z",
-       "endTime": "2026-02-05T12:00:00Z"
-     }
-     ```
-   - Success: 200 OK
-   - Conflict: 409
-
-6. **Cancel Booking** (POST `/api/Bookings/{id}/cancel`):
-   - Success: 200 OK
-
-7. **Delete Booking** (DELETE `/api/Bookings/{id}`):
-   - Success: 204 No Content
-
-8. **Available Rooms** (GET `/api/Rooms/available?start=2026-02-05T10:00:00Z&end=2026-02-05T11:00:00Z`):
-   - Returns rooms not booked in that slot.
+| Endpoint                       | Method | Required Role(s)                     | Description                     |
+|--------------------------------|--------|--------------------------------------|---------------------------------|
+| `/api/Bookings`                | GET    | Admin                                | List all bookings               |
+| `/api/Bookings/{id}`           | GET    | Employee, Admin, Receptionist, FacilitiesManager | Get single booking |
+| `/api/Bookings`                | POST   | Employee                             | Create booking                  |
+| `/api/Bookings/{id}`           | PUT    | Employee                             | Update booking time             |
+| `/api/Bookings/{id}/cancel`    | POST   | Employee                             | Cancel own booking              |
+| `/api/Bookings/{id}`           | DELETE | Admin                                | Delete booking                  |
 
 ### Error Handling
 
-All errors use a consistent format:
-```
+All errors return a consistent JSON shape:
+```json
 {
-  "errorCode": "ValidationError",
-  "message": "Invalid request data",
-  "details": "Details here"
+  "errorCategory": "ClientValidation",
+  "errorCode": "InvalidTimeRange",
+  "message": "End time must be after start time.",
+  "details": "Please check the start and end times."
 }
 ```
-- 400: Validation failures
-- 404: Not found
-- 409: Conflicts (e.g. double booking)
-- 422: Domain rule violations (e.g. end time before start)
-- 500: Unexpected server errors
+- 401 Unauthorized → missing/invalid token
+- 403 Forbidden → authenticated but wrong role
+- 400 Bad Request → validation failure
+- 409 Conflict → double booking
+- 500 Internal Server Error → unexpected server error
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Request Body | Response Codes |
-|--------|----------|-------------|--------------|----------------|
-| GET | `/api/Rooms` | List all rooms | None | 200 OK |
-| GET | `/api/Rooms/available?start={datetime}&end={datetime}` | List available rooms in time slot | None | 200 OK, 400 Bad Request |
-| GET | `/api/Bookings` | List all bookings | None | 200 OK |
-| GET | `/api/Bookings/{id}` | Get booking by ID | None | 200 OK, 404 Not Found |
-| POST | `/api/Bookings` | Create booking | CreateBookingRequest | 201 Created, 400, 409, 422 |
-| PUT | `/api/Bookings/{id}` | Update booking time | UpdateBookingRequest | 200 OK, 400, 404, 409, 422 |
-| POST | `/api/Bookings/{id}/cancel` | Cancel booking | None | 200 OK, 404 |
-| DELETE | `/api/Bookings/{id}` | Delete booking | None | 204 No Content, 404 |
+| Method | Endpoint                        | Description                          | Authorization       | Response Codes          |
+|--------|---------------------------------|--------------------------------------|---------------------|-------------------------|
+| POST   | `/api/auth/login`               | Authenticate & get JWT               | Public              | 200, 401                |
+| GET    | `/api/Rooms`                    | List all rooms                       | Public              | 200                     |
+| GET    | `/api/Rooms/available?...`      | Available rooms in time slot         | Public              | 200, 400                |
+| GET    | `/api/Bookings`                 | List all bookings                    | Admin               | 200, 401, 403           |
+| GET    | `/api/Bookings/{id}`            | Get booking by ID                    | Authenticated       | 200, 401, 403, 404      |
+| POST   | `/api/Bookings`                 | Create booking                       | Employee            | 201, 400, 401, 403, 409 |
+| PUT    | `/api/Bookings/{id}`            | Update booking time                  | Employee            | 200, 400, 401, 403, 404 |
+| POST   | `/api/Bookings/{id}/cancel`     | Cancel booking                       | Employee            | 200, 401, 403, 404      |
+| DELETE | `/api/Bookings/{id}`            | Delete booking                       | Admin               | 204, 401, 403, 404      |
 
 ## Design Choices
 
-- **Separation of Concerns**: Controllers only handle HTTP mapping, validation, and service coordination. Business rules (conflict detection, status transitions) are in `BookingManager`.
-- **DTOs**: Input (Create/UpdateRequest) and output (Booking/RoomDto) DTOs protect domain models and allow API evolution.
-- **Validation**: DataAnnotations for input checks; domain rules throw exceptions mapped to status codes.
-- **Persistence**: Async JSON file for simplicity; easily replaceable with a database.
-- **Error Handling**: Centralized try-catch in controllers; consistent ErrorResponseDto for all failures.
-- **Logging**: Console logs for errors and operations to aid debugging.
+- **Separation of Concerns** — Controllers only handle HTTP; business rules in `BookingManager`.
+- **DTOs** — Input/output contract protection.
+- **Centralized Errors** — Global middleware for consistent shape and logging.
+- **Security** — ASP.NET Core Identity + JWT + role-based authorization.
+- **Persistence** — Async JSON file (load at startup, save on change).
+- **Seeding** — Roles/users seeded at startup for demo/testing.
 
 ## Known Limitations
 
-- In-memory booking list (reloaded from file on startup).
-- Auto-approval for bookings (for demo; add approval flow in future assignments).
-- No authentication (add in future for production).
+- In-memory booking list (reloaded from JSON on startup).
+- Auto-approval for bookings (demo).
+- JWT key hardcoded in config (use secrets management in production).
+- SQLite database (easily swappable to PostgreSQL/SQL Server).
+
+## Installation & Testing
+
+See Setup section above.  
+Test flow:
+1. `dotnet run`
+2. Login → get JWT
+3. Use Bearer token for protected endpoints
+4. Verify 401/403 on missing/wrong permissions
 
 ---  
 
-Developed with .NET 8, ASP.NET Core, and Swagger for seamless API exploration.  
+Developed with .NET 8, ASP.NET Core, Identity, JWT, Swagger, and centralized middleware.  
 
 © 2026 Moeketsi Junior Sillo. All rights reserved.
