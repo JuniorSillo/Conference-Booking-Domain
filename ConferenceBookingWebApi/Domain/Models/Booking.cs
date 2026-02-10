@@ -1,26 +1,30 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace ConferenceBooking.Domain.Models;
 
 public record Booking
 {
+    [Key]
     public Guid Id { get; init; } = Guid.NewGuid();
-    public ConferenceRoom Room { get; init; } = null!;
+
+    public string RoomID { get; init; } = string.Empty;     // ← Scalar FK (string)
+
+    public ConferenceRoom Room { get; init; } = null!;      // Navigation property
+
     public DateTime StartTime { get; init; }
     public DateTime EndTime { get; init; }
     public BookingStatus Status { get; private set; }
 
-    // Constructor for JSON deserialization
+    // Required by EF Core for model creation during migrations/snapshots
+    protected Booking() { }
+
+    // JSON constructor (for deserialization if needed)
     [JsonConstructor]
-    public Booking(
-        Guid id,
-        ConferenceRoom room,
-        DateTime startTime,
-        DateTime endTime,
-        BookingStatus status)
+    public Booking(Guid id, string roomID, ConferenceRoom room, DateTime startTime, DateTime endTime, BookingStatus status)
     {
         Id = id;
+        RoomID = roomID;
         Room = room;
         StartTime = startTime;
         EndTime = endTime;
@@ -30,6 +34,7 @@ public record Booking
     private Booking(ConferenceRoom room, DateTime startTime, DateTime endTime)
     {
         Room = room;
+        RoomID = room.RoomID;  // ← set FK from navigation
         StartTime = startTime;
         EndTime = endTime;
         Status = BookingStatus.Pending;
@@ -50,12 +55,8 @@ public record Booking
     }
 
     public override string ToString() =>
-        $"Booking {Id.ToString("N")[..8].ToUpper()}...\n" +
-        $"  Room: {Room.RoomName} ({Room.RoomID})\n" +
-        $"  Capacity: {Room.Capacity} | Type: {Room.RoomType}\n" +
-        $"  Amenities: {Room.Amenities}\n" +
+        $"Booking {Id}\n" +
+        $"  Room: {Room?.RoomName ?? "N/A"} ({RoomID})\n" +
         $"  Time: {StartTime:ddd, dd MMM yyyy HH:mm} – {EndTime:HH:mm}\n" +
         $"  Status: {Status}";
-
-    protected Booking() { }
 }

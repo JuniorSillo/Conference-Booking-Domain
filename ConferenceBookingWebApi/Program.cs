@@ -1,7 +1,6 @@
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
-using ConferenceBooking.Persistence;
-using ConferenceBooking.Data;
+using ConferenceBookingWebApi.Data;
 using ConferenceBookingWebApi.Middleware;
 using ConferenceBookingWebApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,11 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using ConferenceBookingWebApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext for Identity (SQLite)
+// Add DbContext (SQLite)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
@@ -47,7 +45,7 @@ builder.Services.AddAuthentication(options =>
 // Add Authorization
 builder.Services.AddAuthorization();
 
-// Existing services
+// Controllers + Swagger
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -61,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Please enter JWT with Bearer into field",
+        Description = "Please enter JWT with Bearer",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
@@ -78,14 +76,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Register your services
-builder.Services.AddSingleton<SeedData>();
+// Register BookingManager (no BookingFileStore anymore)
 builder.Services.AddScoped<BookingManager>();
-builder.Services.AddScoped<BookingFileStore>(sp =>
-{
-    var manager = sp.GetRequiredService<BookingManager>();
-    return new BookingFileStore("bookings.json", manager);
-});
 
 var app = builder.Build();
 
@@ -103,23 +95,23 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Seed roles/users + load bookings **only after app is fully started** (no build hang)
-app.Lifetime.ApplicationStarted.Register(async () =>
+// Seed roles/users + log database readiness
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    var bookingManager = services.GetRequiredService<BookingManager>();
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+
+    // Ensure database is created
+    await dbContext.Database.EnsureCreatedAsync();
 
     // Seed roles
     string[] roles = { "Employee", "Admin", "Receptionist", "FacilitiesManager" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
-        {
             await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
 
     // Seed users
@@ -139,14 +131,11 @@ app.Lifetime.ApplicationStarted.Register(async () =>
             user = new ApplicationUser { UserName = u.Email, Email = u.Email };
             var result = await userManager.CreateAsync(user, u.Password);
             if (result.Succeeded)
-            {
                 await userManager.AddToRoleAsync(user, u.Role);
-            }
         }
     }
 
-    // Load bookings
-    await bookingManager.LoadBookingsAsync();
-});
+    Console.WriteLine("Database ready - data persisted via EF Core");
+}
 
 app.Run();

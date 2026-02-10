@@ -30,12 +30,11 @@ public class BookingsController : ControllerBase
         _seedData = seedData ?? throw new ArgumentNullException(nameof(seedData));
     }
 
-    // GET: api/bookings - List all bookings (Admin only)
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public ActionResult<IEnumerable<BookingDto>> GetAllBookings()
+    public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookings()
     {
-        var bookings = _manager.GetBookings();
+        var bookings = await _manager.GetBookingsAsync();
         var dtos = bookings.Select(b => new BookingDto
         {
             Id = b.Id,
@@ -55,12 +54,11 @@ public class BookingsController : ControllerBase
         return Ok(dtos);
     }
 
-    // GET: api/bookings/{id} - Get single booking (all authenticated users)
     [HttpGet("{id:guid}")]
     [Authorize(Roles = "Employee,Admin,Receptionist,FacilitiesManager")]
-    public ActionResult<BookingDto> GetBooking(Guid id)
+    public async Task<ActionResult<BookingDto>> GetBooking(Guid id)
     {
-        var booking = _manager.GetBookingById(id);
+        var booking = await _manager.GetBookingByIdAsync(id);
         if (booking == null)
             return NotFound();
 
@@ -83,17 +81,16 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
-    // POST: api/bookings - Create new booking (Employee only)
     [HttpPost]
     [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> CreateBooking([FromBody] CreateBookingRequest request)
     {
         if (!ModelState.IsValid)
-            return BadRequest();
+            return BadRequest(ModelState);
 
         var room = _seedData.SeedRooms().FirstOrDefault(r => r.RoomID == request.RoomID);
         if (room == null)
-            return BadRequest();
+            return BadRequest(new { Message = "Room not found" });
 
         var domainRequest = new BookingRequest
         {
@@ -102,9 +99,7 @@ public class BookingsController : ControllerBase
             EndTime = request.EndTime
         };
 
-        var booking = _manager.CreateBooking(domainRequest);
-
-        await _store.SaveAsync(_manager.GetBookings());
+        var booking = await _manager.CreateBookingAsync(domainRequest);
 
         var dto = new BookingDto
         {
@@ -125,21 +120,18 @@ public class BookingsController : ControllerBase
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, dto);
     }
 
-    // PUT: api/bookings/{id} - Update booking time (Employee only)
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> UpdateBooking(Guid id, [FromBody] UpdateBookingRequest request)
     {
         if (!ModelState.IsValid)
-            return BadRequest();
+            return BadRequest(ModelState);
 
-        bool success = _manager.UpdateBooking(id, request.StartTime, request.EndTime);
+        bool success = await _manager.UpdateBookingAsync(id, request.StartTime, request.EndTime);
         if (!success)
             return NotFound();
 
-        await _store.SaveAsync(_manager.GetBookings());
-
-        var updated = _manager.GetBookingById(id);
+        var updated = await _manager.GetBookingByIdAsync(id);
         if (updated == null)
             return NotFound();
 
@@ -162,29 +154,25 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
-    // POST: api/bookings/{id}/cancel - Cancel booking (Employee only)
     [HttpPost("{id:guid}/cancel")]
     [Authorize(Roles = "Employee")]
     public async Task<IActionResult> CancelBooking(Guid id)
     {
-        bool success = _manager.CancelBooking(id);
+        bool success = await _manager.CancelBookingAsync(id);
         if (!success)
             return NotFound();
 
-        await _store.SaveAsync(_manager.GetBookings());
         return Ok(new { Message = "Booking cancelled successfully" });
     }
 
-    // DELETE: api/bookings/{id} - Delete booking (Admin only)
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBooking(Guid id)
     {
-        bool success = _manager.DeleteBooking(id);
+        bool success = await _manager.DeleteBookingAsync(id);
         if (!success)
             return NotFound();
 
-        await _store.SaveAsync(_manager.GetBookings());
         return NoContent();
     }
 }

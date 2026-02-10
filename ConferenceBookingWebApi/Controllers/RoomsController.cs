@@ -1,18 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
-using ConferenceBooking.Data;
 using ConferenceBooking.Logic;
+using ConferenceBooking.Data;
 using ConferenceBookingWebApi.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ConferenceBookingWebApi.Controllers;
- 
+
 [ApiController]
 [Route("api/[controller]")]
 public class RoomsController : ControllerBase
 {
+    private readonly BookingManager _manager;
     private readonly SeedData _seedData;
 
-    public RoomsController(SeedData seedData)
+    public RoomsController(BookingManager manager, SeedData seedData)
     {
+        _manager = manager;
         _seedData = seedData;
     }
 
@@ -33,15 +39,14 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet("available")]
-    public ActionResult<IEnumerable<RoomDto>> GetAvailableRooms(
+    public async Task<ActionResult<IEnumerable<RoomDto>>> GetAvailableRooms(
         [FromQuery] DateTime start,
         [FromQuery] DateTime end)
     {
         if (start >= end)
-            return BadRequest(new ErrorResponse { Message = "End time must be after start time." });
+            return BadRequest("End time must be after start time.");
 
-        var manager = HttpContext.RequestServices.GetRequiredService<BookingManager>();
-        var available = manager.GetAvailableRooms(start, end);
+        var available = await _manager.GetAvailableRoomsAsync(start, end);  // ← FIXED: await + Async
 
         var dtos = available.Select(r => new RoomDto
         {
