@@ -1,24 +1,33 @@
-
 # Conference Booking System API
-
 
 ## Overview
 
-This project implements a robust, scalable, and **secure** RESTful API for the Conference Booking System using ASP.NET Core Web API (.NET 8). It exposes domain logic from previous assignments over HTTP with clear separation of concerns, thin controllers, centralized business rules, async persistence, explicit error handling, and role-based authorization.
+This project implements a robust, scalable, **secure**, and **persistent** RESTful API for the Conference Booking System using ASP.NET Core Web API (.NET 8).
 
-The API now includes full authentication and authorization using **ASP.NET Core Identity** and **JWT**, enforcing role-based access for all booking operations. It is designed for high reliability, security, and future extensibility (e.g., database-backed ownership).
+It exposes domain logic from previous assignments over HTTP with:
+- Clear separation of concerns
+- Thin controllers
+- Centralized business rules
+- Async EF Core persistence
+- Explicit error handling
+- Role-based authorization
+
+The API includes full authentication and authorization using **ASP.NET Core Identity** and **JWT**, enforcing role-based access for all operations. Data is now **persistently stored** in a SQLite database (`app.db`) using Entity Framework Core, surviving application restarts and supporting schema evolution.
 
 ### Project Context
 
-This implementation covers **Assignments 2.1 through 2.4**:
+This implementation covers **Assignments 2.1 through 3.2**:
+
 - 2.1: Domain model & business logic
 - 2.2: API contract with DTOs, validation, precise status codes
 - 2.3: Centralized failure handling & middleware
-- 2.4: Authentication (JWT), authorization (roles), and secure endpoints
+- 2.4: Authentication (JWT), authorization (roles), secure endpoints
+- 3.1: Full EF Core persistence (replaced in-memory/JSON storage)
+- 3.2: Schema evolution & migrations (added new fields safely)
 
 ## Features
 
-- **Booking Operations** (secured):
+- **Booking Operations** (secured & persisted):
   - Create bookings (Employee)
   - List all bookings (Admin)
   - Get booking by ID (all authenticated roles)
@@ -30,25 +39,34 @@ This implementation covers **Assignments 2.1 through 2.4**:
   - List all rooms (seeded with 10 varied rooms)
   - Get available rooms for a given time slot
 
+- **Session Operations** (new in 3.2):
+  - Seeded sessions with capacity, start/end times
+
 - **Authentication & Authorization**:
   - Login endpoint (`POST /api/auth/login`) → returns JWT
   - Role-based access: Employee, Admin, Receptionist, FacilitiesManager
   - Protected endpoints return 401 (unauthenticated) or 403 (unauthorized)
 
+- **Persistence & Durability**:
+  - Full EF Core + SQLite storage
+  - Data survives app restarts
+  - Schema evolution via migrations (additive changes only)
+
 - **Advanced Functionality**:
   - Double-booking prevention (409 Conflict)
   - Input validation (400 Bad Request)
-  - Centralized error handling with categories (ClientValidation, BusinessRuleViolation, UnexpectedError)
-  - Async JSON file persistence (loads on startup, saves on changes)
-  - Structured logging of failures (no sensitive data exposed)
+  - Centralized error handling with categories
+  - Async operations throughout
+  - Structured logging of failures
 
 - **Technical Highlights**:
-  - Thin controllers with centralized middleware
+  - Thin controllers + centralized middleware
   - DTOs for input/output contract safety
-  - ASP.NET Core Identity + EF Core (SQLite) for users/roles
+  - ASP.NET Core Identity + EF Core for users/roles
   - JWT Bearer authentication
   - Swagger with Bearer token support
-  - Precise HTTP status codes (401, 403, 409, etc.)
+  - Precise HTTP status codes
+  - Repeatable, idempotent seeding
 
 ## Installation
 
@@ -70,9 +88,9 @@ This implementation covers **Assignments 2.1 through 2.4**:
    dotnet restore
    ```
 
-3. **Apply database migrations** (creates Identity tables):
+3. **Apply database migrations** (creates Identity + domain tables):
    ```
-   dotnet ef migrations add IdentitySetup
+   dotnet ef migrations add InitialWithIdentity
    dotnet ef database update
    ```
 
@@ -84,6 +102,7 @@ This implementation covers **Assignments 2.1 through 2.4**:
 
    - API runs on `https://localhost:5051` (or your configured port)
    - Swagger UI: `https://localhost:5051/swagger`
+   - Database file: `app.db` (SQLite) in project root
 
 ## Usage
 
@@ -93,14 +112,14 @@ This implementation covers **Assignments 2.1 through 2.4**:
    ```json
    {
      "email": "admin@demo.com",
-     "password": "Pass123!"
+     "password": "*******"
    }
    ```
    Response:
    ```json
    {
      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-     "expires": "2026-02-09T09:21:00Z"
+     "expires": "2026-02-10T09:21:00Z"
    }
    ```
 
@@ -112,17 +131,20 @@ This implementation covers **Assignments 2.1 through 2.4**:
 
 | Email                  | Password   | Role              |
 |------------------------|------------|-------------------|
-| employee@demo.com      | Pass123!   | Employee          |
-| admin@demo.com         | Pass123!   | Admin             |
-| reception@demo.com     | Pass123!   | Receptionist      |
-| facilities@demo.com    | Pass123!   | FacilitiesManager |
+| employee@demo.com      | ********   | Employee          |
+| admin@demo.com         | ********   | Admin             |
+| reception@demo.com     | ********   | Receptionist      |
+| facilities@demo.com    | ********   | FacilitiesManager |
 
 ### Protected Endpoints Summary
 
 | Endpoint                       | Method | Required Role(s)                     | Description                     |
 |--------------------------------|--------|--------------------------------------|---------------------------------|
+| `/api/auth/login`              | POST   | Public                               | Authenticate & get JWT          |
+| `/api/Rooms`                   | GET    | Public                               | List all rooms                  |
+| `/api/Rooms/available?...`     | GET    | Public                               | Available rooms in time slot    |
 | `/api/Bookings`                | GET    | Admin                                | List all bookings               |
-| `/api/Bookings/{id}`           | GET    | Employee, Admin, Receptionist, FacilitiesManager | Get single booking |
+| `/api/Bookings/{id}`           | GET    | Authenticated                        | Get single booking              |
 | `/api/Bookings`                | POST   | Employee                             | Create booking                  |
 | `/api/Bookings/{id}`           | PUT    | Employee                             | Update booking time             |
 | `/api/Bookings/{id}/cancel`    | POST   | Employee                             | Cancel own booking              |
@@ -133,47 +155,33 @@ This implementation covers **Assignments 2.1 through 2.4**:
 All errors return a consistent JSON shape:
 ```json
 {
-  "errorCategory": "ClientValidation",
-  "errorCode": "InvalidTimeRange",
-  "message": "End time must be after start time.",
-  "details": "Please check the start and end times."
+  "errorCategory": "BusinessRuleViolation",
+  "errorCode": "TimeSlotConflict",
+  "message": "Time slot overlaps with an existing booking.",
+  "details": null
 }
 ```
 - 401 Unauthorized → missing/invalid token
 - 403 Forbidden → authenticated but wrong role
 - 400 Bad Request → validation failure
-- 409 Conflict → double booking
+- 409 Conflict → double booking / invalid state
 - 500 Internal Server Error → unexpected server error
-
-## API Endpoints
-
-| Method | Endpoint                        | Description                          | Authorization       | Response Codes          |
-|--------|---------------------------------|--------------------------------------|---------------------|-------------------------|
-| POST   | `/api/auth/login`               | Authenticate & get JWT               | Public              | 200, 401                |
-| GET    | `/api/Rooms`                    | List all rooms                       | Public              | 200                     |
-| GET    | `/api/Rooms/available?...`      | Available rooms in time slot         | Public              | 200, 400                |
-| GET    | `/api/Bookings`                 | List all bookings                    | Admin               | 200, 401, 403           |
-| GET    | `/api/Bookings/{id}`            | Get booking by ID                    | Authenticated       | 200, 401, 403, 404      |
-| POST   | `/api/Bookings`                 | Create booking                       | Employee            | 201, 400, 401, 403, 409 |
-| PUT    | `/api/Bookings/{id}`            | Update booking time                  | Employee            | 200, 400, 401, 403, 404 |
-| POST   | `/api/Bookings/{id}/cancel`     | Cancel booking                       | Employee            | 200, 401, 403, 404      |
-| DELETE | `/api/Bookings/{id}`            | Delete booking                       | Admin               | 204, 401, 403, 404      |
 
 ## Design Choices
 
-- **Separation of Concerns** — Controllers only handle HTTP; business rules in `BookingManager`.
+- **Separation of Concerns** — Controllers only handle HTTP; business rules in `BookingManager`; persistence in `ApplicationDbContext`.
 - **DTOs** — Input/output contract protection.
 - **Centralized Errors** — Global middleware for consistent shape and logging.
 - **Security** — ASP.NET Core Identity + JWT + role-based authorization.
-- **Persistence** — Async JSON file (load at startup, save on change).
-- **Seeding** — Roles/users seeded at startup for demo/testing.
+- **Persistence** — EF Core + SQLite (durable across restarts, supports schema evolution).
+- **Seeding** — Roles/users seeded at startup (configuration-driven); rooms seeded in-memory.
 
 ## Known Limitations
 
-- In-memory booking list (reloaded from JSON on startup).
-- Auto-approval for bookings (demo).
-- JWT key hardcoded in config (use secrets management in production).
-- SQLite database (easily swappable to PostgreSQL/SQL Server).
+- JWT key hardcoded in config (use secrets management in production)
+- SQLite database (easily swappable to PostgreSQL/SQL Server)
+- Auto-approval for bookings (demo)
+- No advanced session booking flow yet
 
 ## Installation & Testing
 
@@ -182,10 +190,11 @@ Test flow:
 1. `dotnet run`
 2. Login → get JWT
 3. Use Bearer token for protected endpoints
-4. Verify 401/403 on missing/wrong permissions
+4. Create booking → restart app → list bookings → data persists
+5. Verify 401/403 on missing/wrong permissions
 
 ---  
 
-Developed with .NET 8, ASP.NET Core, Identity, JWT, Swagger, and centralized middleware.  
+Developed with .NET 8, ASP.NET Core, EF Core, Identity, JWT, Swagger, and centralized middleware.  
 
 © 2026 Moeketsi Junior Sillo. All rights reserved.

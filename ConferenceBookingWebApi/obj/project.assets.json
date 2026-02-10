@@ -3758,19 +3758,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Training Center 1\\.nuget\\packages\\": {}
+    "/Users/cash/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
+      "projectUniqueName": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
       "projectName": "ConferenceBookingWebApi",
-      "projectPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
-      "packagesPath": "C:\\Users\\Training Center 1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\obj\\",
+      "projectPath": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
+      "packagesPath": "/Users/cash/.nuget/packages/",
+      "outputPath": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Training Center 1\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/cash/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -3793,7 +3793,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -3863,7 +3864,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
