@@ -8,16 +8,106 @@ public class SeedData
     {
         return new List<ConferenceRoom>
         {
-            ConferenceRoom.Create("CR001", "Ocean View", 20, RoomType.Premium, RoomAmenity.Projector | RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.AirConditioning | RoomAmenity.CoffeeMachine),
-            ConferenceRoom.Create("CR002", "Mountain Ridge", 12, RoomType.Standard, RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.SpeakerPhone),
-            ConferenceRoom.Create("CR003", "City Skyline", 8, RoomType.Executive, RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.CoffeeMachine),
-            ConferenceRoom.Create("CR004", "Boardroom Alpha", 16, RoomType.Boardroom, RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.VideoConference | RoomAmenity.SpeakerPhone | RoomAmenity.AirConditioning),
-            ConferenceRoom.Create("CR005", "River Side", 10, RoomType.Standard, RoomAmenity.Projector | RoomAmenity.Whiteboard),
-            ConferenceRoom.Create("CR006", "Sunset Lounge", 25, RoomType.Premium, RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.CoffeeMachine | RoomAmenity.AirConditioning),
-            ConferenceRoom.Create("CR007", "Tech Hub", 15, RoomType.Executive, RoomAmenity.Projector | RoomAmenity.VideoConference | RoomAmenity.SpeakerPhone),
-            ConferenceRoom.Create("CR008", "Quiet Zone", 6, RoomType.Standard, RoomAmenity.NaturalLight),
-            ConferenceRoom.Create("CR009", "Strategy Room", 18, RoomType.Boardroom, RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.VideoConference),
-            ConferenceRoom.Create("CR010", "Creative Space", 14, RoomType.Executive, RoomAmenity.CoffeeMachine | RoomAmenity.NaturalLight | RoomAmenity.Whiteboard)
+            new ConferenceRoom
+            {
+                RoomID = "CR001",
+                RoomName = "Ocean View",
+                Capacity = 20,
+                RoomType = RoomType.Premium,
+                Amenities = RoomAmenity.Projector | RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.AirConditioning | RoomAmenity.CoffeeMachine,
+                Location = "Bitcube HQ, Bloemfontein, Floor 5 - Ocean Wing",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR002",
+                RoomName = "Mountain Ridge",
+                Capacity = 12,
+                RoomType = RoomType.Standard,
+                Amenities = RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.SpeakerPhone,
+                Location = "Bitcube HQ, Bloemfontein, Floor 3 - Mountain Wing",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR003",
+                RoomName = "City Skyline",
+                Capacity = 8,
+                RoomType = RoomType.Executive,
+                Amenities = RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.CoffeeMachine,
+                Location = "Bitcube HQ, Bloemfontein, Floor 10 - Skyline Suite",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR004",
+                RoomName = "Boardroom Alpha",
+                Capacity = 16,
+                RoomType = RoomType.Boardroom,
+                Amenities = RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.VideoConference | RoomAmenity.SpeakerPhone | RoomAmenity.AirConditioning,
+                Location = "Bitcube HQ, Bloemfontein, Floor 2 - Executive Floor",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR005",
+                RoomName = "River Side",
+                Capacity = 10,
+                RoomType = RoomType.Standard,
+                Amenities = RoomAmenity.Projector | RoomAmenity.Whiteboard,
+                Location = "Bitcube HQ, Bloemfontein, Floor 4 - River Wing",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR006",
+                RoomName = "Sunset Lounge",
+                Capacity = 25,
+                RoomType = RoomType.Premium,
+                Amenities = RoomAmenity.VideoConference | RoomAmenity.NaturalLight | RoomAmenity.CoffeeMachine | RoomAmenity.AirConditioning,
+                Location = "Bitcube HQ, Bloemfontein, Floor 12 - Rooftop",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR007",
+                RoomName = "Tech Hub",
+                Capacity = 15,
+                RoomType = RoomType.Executive,
+                Amenities = RoomAmenity.Projector | RoomAmenity.VideoConference | RoomAmenity.SpeakerPhone,
+                Location = "Bitcube HQ, Bloemfontein, Floor 6 - Tech Wing",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR008",
+                RoomName = "Quiet Zone",
+                Capacity = 6,
+                RoomType = RoomType.Standard,
+                Amenities = RoomAmenity.NaturalLight,
+                Location = "Bitcube HQ, Bloemfontein, Floor 1 - Quiet Area",
+                IsActive = false  // Example inactive room
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR009",
+                RoomName = "Strategy Room",
+                Capacity = 18,
+                RoomType = RoomType.Boardroom,
+                Amenities = RoomAmenity.Projector | RoomAmenity.Whiteboard | RoomAmenity.VideoConference,
+                Location = "Bitcube HQ, Bloemfontein, Floor 7 - Strategy Suite",
+                IsActive = true
+            },
+            new ConferenceRoom
+            {
+                RoomID = "CR010",
+                RoomName = "Creative Space",
+                Capacity = 14,
+                RoomType = RoomType.Executive,
+                Amenities = RoomAmenity.CoffeeMachine | RoomAmenity.NaturalLight | RoomAmenity.Whiteboard,
+                Location = "Bitcube HQ, Bloemfontein, Floor 8 - Creative Wing",
+                IsActive = true
+            }
         };
     }
 }

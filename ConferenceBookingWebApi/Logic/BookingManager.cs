@@ -22,7 +22,7 @@ public class BookingManager
     public async Task LoadBookingsAsync()
     {
         var count = await _context.Bookings.CountAsync();
-        Console.WriteLine($"Database ready - {count} bookings available.");
+        Console.WriteLine($"Database initialized – {count} bookings available.");
     }
 
     public async Task<IReadOnlyList<Booking>> GetBookingsAsync()

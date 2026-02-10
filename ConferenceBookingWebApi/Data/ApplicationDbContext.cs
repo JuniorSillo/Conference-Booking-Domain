@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<ConferenceRoom> Rooms { get; set; }
+    public DbSet<Session> Sessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -25,10 +26,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ConferenceRoom>()
             .HasKey(r => r.RoomID);
 
+        builder.Entity<Session>()
+            .HasKey(s => s.Id);
+
         builder.Entity<Booking>()
             .HasOne(b => b.Room)
             .WithMany()
             .HasForeignKey(b => b.RoomID)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Session>()
+            .HasOne(s => s.Room)
+            .WithMany()
+            .HasForeignKey(s => s.RoomID)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
