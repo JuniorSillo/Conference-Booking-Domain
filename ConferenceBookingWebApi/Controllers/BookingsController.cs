@@ -40,11 +40,15 @@ public class BookingsController : ControllerBase
                 RoomName = b.Room.RoomName,
                 Capacity = b.Room.Capacity,
                 RoomType = b.Room.RoomType.ToString(),
-                Amenities = b.Room.Amenities.ToString()
+                Amenities = b.Room.Amenities.ToString(),
+                Location = b.Room.Location,
+                IsActive = b.Room.IsActive
             },
             StartTime = b.StartTime,
             EndTime = b.EndTime,
-            Status = b.Status.ToString()
+            Status = b.Status.ToString(),
+            CreatedAt = b.CreatedAt,
+            CancelledAt = b.CancelledAt
         });
 
         return Ok(dtos);
@@ -67,11 +71,15 @@ public class BookingsController : ControllerBase
                 RoomName = booking.Room.RoomName,
                 Capacity = booking.Room.Capacity,
                 RoomType = booking.Room.RoomType.ToString(),
-                Amenities = booking.Room.Amenities.ToString()
+                Amenities = booking.Room.Amenities.ToString(),
+                Location = booking.Room.Location,
+                IsActive = booking.Room.IsActive
             },
             StartTime = booking.StartTime,
             EndTime = booking.EndTime,
-            Status = booking.Status.ToString()
+            Status = booking.Status.ToString(),
+            CreatedAt = booking.CreatedAt,
+            CancelledAt = booking.CancelledAt
         };
 
         return Ok(dto);
@@ -106,11 +114,15 @@ public class BookingsController : ControllerBase
                 RoomName = room.RoomName,
                 Capacity = room.Capacity,
                 RoomType = room.RoomType.ToString(),
-                Amenities = room.Amenities.ToString()
+                Amenities = room.Amenities.ToString(),
+                Location = room.Location,
+                IsActive = room.IsActive
             },
             StartTime = booking.StartTime,
             EndTime = booking.EndTime,
-            Status = booking.Status.ToString()
+            Status = booking.Status.ToString(),
+            CreatedAt = booking.CreatedAt,
+            CancelledAt = booking.CancelledAt
         };
 
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, dto);
@@ -140,11 +152,15 @@ public class BookingsController : ControllerBase
                 RoomName = updated.Room.RoomName,
                 Capacity = updated.Room.Capacity,
                 RoomType = updated.Room.RoomType.ToString(),
-                Amenities = updated.Room.Amenities.ToString()
+                Amenities = updated.Room.Amenities.ToString(),
+                Location = updated.Room.Location,
+                IsActive = updated.Room.IsActive
             },
             StartTime = updated.StartTime,
             EndTime = updated.EndTime,
-            Status = updated.Status.ToString()
+            Status = updated.Status.ToString(),
+            CreatedAt = updated.CreatedAt,
+            CancelledAt = updated.CancelledAt
         };
 
         return Ok(dto);

@@ -32,14 +32,16 @@ public class RoomsController : ControllerBase
             RoomName = r.RoomName,
             Capacity = r.Capacity,
             RoomType = r.RoomType.ToString(),
-            Amenities = r.Amenities.ToString()
+            Amenities = r.Amenities.ToString(),
+            Location = r.Location,
+            IsActive = r.IsActive
         });
 
         return Ok(dtos);
     }
 
     [HttpGet("available")]
-    public async Task<ActionResult<IEnumerable<RoomDto>> > GetAvailableRooms(
+    public async Task<ActionResult<IEnumerable<RoomDto>>> GetAvailableRooms(
         [FromQuery] DateTime start,
         [FromQuery] DateTime end)
     {
@@ -54,7 +56,9 @@ public class RoomsController : ControllerBase
             RoomName = r.RoomName,
             Capacity = r.Capacity,
             RoomType = r.RoomType.ToString(),
-            Amenities = r.Amenities.ToString()
+            Amenities = r.Amenities.ToString(),
+            Location = r.Location,
+            IsActive = r.IsActive
         });
 
         return Ok(dtos);
