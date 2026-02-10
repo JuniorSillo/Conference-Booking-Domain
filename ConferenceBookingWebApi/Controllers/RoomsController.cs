@@ -39,14 +39,14 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet("available")]
-    public async Task<ActionResult<IEnumerable<RoomDto>>> GetAvailableRooms(
+    public async Task<ActionResult<IEnumerable<RoomDto>> > GetAvailableRooms(
         [FromQuery] DateTime start,
         [FromQuery] DateTime end)
     {
         if (start >= end)
             return BadRequest("End time must be after start time.");
 
-        var available = await _manager.GetAvailableRoomsAsync(start, end);  // ← FIXED: await + Async
+        var available = await _manager.GetAvailableRoomsAsync(start, end);
 
         var dtos = available.Select(r => new RoomDto
         {

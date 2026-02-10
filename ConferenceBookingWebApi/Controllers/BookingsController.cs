@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
-using ConferenceBooking.Persistence;
 using ConferenceBooking.Data;
 using ConferenceBookingWebApi.DTOs;
 using System;
@@ -17,16 +16,13 @@ namespace ConferenceBookingWebApi.Controllers;
 public class BookingsController : ControllerBase
 {
     private readonly BookingManager _manager;
-    private readonly BookingFileStore _store;
     private readonly SeedData _seedData;
 
     public BookingsController(
         BookingManager manager,
-        BookingFileStore store,
         SeedData seedData)
     {
         _manager = manager ?? throw new ArgumentNullException(nameof(manager));
-        _store = store ?? throw new ArgumentNullException(nameof(store));
         _seedData = seedData ?? throw new ArgumentNullException(nameof(seedData));
     }
 

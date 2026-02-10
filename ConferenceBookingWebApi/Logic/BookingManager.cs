@@ -21,9 +21,8 @@ public class BookingManager
 
     public async Task LoadBookingsAsync()
     {
-        // Optional: just log current count (no heavy loading needed)
         var count = await _context.Bookings.CountAsync();
-        Console.WriteLine($"Database initialized – {count} bookings available.");
+        Console.WriteLine($"Database ready - {count} bookings available.");
     }
 
     public async Task<IReadOnlyList<Booking>> GetBookingsAsync()
@@ -125,7 +124,6 @@ public class BookingManager
 
     public async Task<IReadOnlyList<ConferenceRoom>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
-        // Use seeded rooms as base list
         var allRooms = new SeedData().SeedRooms();
 
         var bookedRoomIds = await _context.Bookings
@@ -136,9 +134,8 @@ public class BookingManager
             .Distinct()
             .ToListAsync();
 
-        return allRooms
-            .Where(r => !bookedRoomIds.Contains(r.RoomID))
-            .ToList()
-            .AsReadOnly();
+        return allRooms.Where(r => !bookedRoomIds.Contains(r.RoomID))
+                       .ToList()
+                       .AsReadOnly();
     }
 }

@@ -8,18 +8,16 @@ public record Booking
     [Key]
     public Guid Id { get; init; } = Guid.NewGuid();
 
-    public string RoomID { get; init; } = string.Empty;     // ← Scalar FK (string)
+    public string RoomID { get; init; } = string.Empty;  
 
-    public ConferenceRoom Room { get; init; } = null!;      // Navigation property
+    public ConferenceRoom Room { get; init; } = null!;
 
     public DateTime StartTime { get; init; }
     public DateTime EndTime { get; init; }
     public BookingStatus Status { get; private set; }
 
-    // Required by EF Core for model creation during migrations/snapshots
     protected Booking() { }
 
-    // JSON constructor (for deserialization if needed)
     [JsonConstructor]
     public Booking(Guid id, string roomID, ConferenceRoom room, DateTime startTime, DateTime endTime, BookingStatus status)
     {
@@ -34,7 +32,7 @@ public record Booking
     private Booking(ConferenceRoom room, DateTime startTime, DateTime endTime)
     {
         Room = room;
-        RoomID = room.RoomID;  // ← set FK from navigation
+        RoomID = room.RoomID;
         StartTime = startTime;
         EndTime = endTime;
         Status = BookingStatus.Pending;

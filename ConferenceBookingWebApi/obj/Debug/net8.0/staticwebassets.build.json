@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"VeTCReMu/ka5wy9LIz/+SJ0Sl1LynrTN5U4QtQJMxuE=","Source":"ConferenceBookingWebApi","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "sxAzBAgurGvOlXopa6MV4IIWOnOFn0TKtxdVkcBkE2A=",
+  "Source": "ConferenceBookingWebApi",
+  "BasePath": "_content/ConferenceBookingWebApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,6 +1,7 @@
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
-using ConferenceBookingWebApi.Data;
+using ConferenceBooking.Persistence;
+using ConferenceBooking.Data;
 using ConferenceBookingWebApi.Middleware;
 using ConferenceBookingWebApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,10 +10,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ConferenceBookingWebApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext (SQLite)
+// Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=app.db"));
 
@@ -76,8 +78,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Register BookingManager (no BookingFileStore anymore)
+// Register services
+builder.Services.AddSingleton<SeedData>();
 builder.Services.AddScoped<BookingManager>();
+builder.Services.AddScoped<BookingFileStore>(sp =>
+{
+    var manager = sp.GetRequiredService<BookingManager>();
+    return new BookingFileStore("bookings.json", manager);
+});
 
 var app = builder.Build();
 
@@ -95,47 +103,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Seed roles/users + log database readiness
-using (var scope = app.Services.CreateScope())
+// Seed Identity + load bookings (after app is ready)
+app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    var dbContext = services.GetRequiredService<ApplicationDbContext>();
-
-    // Ensure database is created
-    await dbContext.Database.EnsureCreatedAsync();
-
-    // Seed roles
-    string[] roles = { "Employee", "Admin", "Receptionist", "FacilitiesManager" };
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
-    }
-
-    // Seed users
-    var seedUsers = new[]
-    {
-        new { Email = "employee@demo.com", Password = "Pass123!", Role = "Employee" },
-        new { Email = "admin@demo.com", Password = "Pass123!", Role = "Admin" },
-        new { Email = "reception@demo.com", Password = "Pass123!", Role = "Receptionist" },
-        new { Email = "facilities@demo.com", Password = "Pass123!", Role = "FacilitiesManager" }
-    };
-
-    foreach (var u in seedUsers)
-    {
-        var user = await userManager.FindByEmailAsync(u.Email);
-        if (user == null)
-        {
-            user = new ApplicationUser { UserName = u.Email, Email = u.Email };
-            var result = await userManager.CreateAsync(user, u.Password);
-            if (result.Succeeded)
-                await userManager.AddToRoleAsync(user, u.Role);
-        }
-    }
-
-    Console.WriteLine("Database ready - data persisted via EF Core");
-}
+    await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
+    using var scope = app.Services.CreateScope();
+    var bookingManager = scope.ServiceProvider.GetRequiredService<BookingManager>();
+    await bookingManager.LoadBookingsAsync();
+});
 
 app.Run();

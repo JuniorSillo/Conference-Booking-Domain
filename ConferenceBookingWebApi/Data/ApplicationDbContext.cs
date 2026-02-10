@@ -19,18 +19,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
-        // Booking PK
         builder.Entity<Booking>()
             .HasKey(b => b.Id);
 
-        // ConferenceRoom PK
         builder.Entity<ConferenceRoom>()
             .HasKey(r => r.RoomID);
 
-        // Booking → Room relationship using scalar FK RoomID
         builder.Entity<Booking>()
             .HasOne(b => b.Room)
-            .WithMany()  // no inverse navigation needed
+            .WithMany()
             .HasForeignKey(b => b.RoomID)
             .OnDelete(DeleteBehavior.Restrict);
     }
