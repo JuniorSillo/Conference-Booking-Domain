@@ -138,4 +138,11 @@ public class BookingManager
                        .ToList()
                        .AsReadOnly();
     }
+
+    public IQueryable<Booking> GetBookingsQueryable()
+        {
+            return _context.Bookings
+            .Include(b => b.Room)
+            .AsNoTracking();  
+        }
 }
