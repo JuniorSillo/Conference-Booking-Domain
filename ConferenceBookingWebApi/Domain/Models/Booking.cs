@@ -17,7 +17,7 @@ public record Booking
 
     public BookingStatus Status { get; private set; }
 
-    // Fields added in Assignment 3.2
+    
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? CancelledAt { get; private set; }
 

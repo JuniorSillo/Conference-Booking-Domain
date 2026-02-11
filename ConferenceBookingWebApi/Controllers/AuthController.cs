@@ -50,8 +50,12 @@ public class AuthController : ControllerBase
             expires: DateTime.Now.AddHours(1),
             signingCredentials: creds);
 
+        
+        string primaryRole = roles.FirstOrDefault() ?? "User";
+
         return Ok(new
         {
+            message = $"Welcome {primaryRole}! {primaryRole} successfully logged in",
             token = new JwtSecurityTokenHandler().WriteToken(token)
         });
     }
