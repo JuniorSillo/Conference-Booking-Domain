@@ -11,12 +11,13 @@ It exposes domain logic from previous assignments over HTTP with:
 - Async EF Core persistence
 - Explicit error handling
 - Role-based authorization
+- Efficient querying with filtering, pagination, sorting, and projection
 
-The API includes full authentication and authorization using **ASP.NET Core Identity** and **JWT**, enforcing role-based access for all operations. Data is now **persistently stored** in a SQLite database (`app.db`) using Entity Framework Core, surviving application restarts and supporting schema evolution.
+The API includes full authentication and authorization using **ASP.NET Core Identity** and **JWT**, enforcing role-based access for all operations. Data is persistently stored in a SQLite database (`app.db`) using Entity Framework Core, surviving application restarts and supporting schema evolution.
 
 ### Project Context
 
-This implementation covers **Assignments 2.1 through 3.2**:
+This implementation covers **Assignments 2.1 through 3.3**:
 
 - 2.1: Domain model & business logic
 - 2.2: API contract with DTOs, validation, precise status codes
@@ -24,12 +25,13 @@ This implementation covers **Assignments 2.1 through 3.2**:
 - 2.4: Authentication (JWT), authorization (roles), secure endpoints
 - 3.1: Full EF Core persistence (replaced in-memory/JSON storage)
 - 3.2: Schema evolution & migrations (added new fields safely)
+- 3.3: Querying, filtering, pagination, sorting, and performance-aware API design
 
 ## Features
 
 - **Booking Operations** (secured & persisted):
   - Create bookings (Employee)
-  - List all bookings (Admin)
+  - List all bookings with filtering, pagination, sorting (Admin)
   - Get booking by ID (all authenticated roles)
   - Update booking time (Employee)
   - Cancel own booking (Employee)
@@ -39,9 +41,6 @@ This implementation covers **Assignments 2.1 through 3.2**:
   - List all rooms (seeded with 10 varied rooms)
   - Get available rooms for a given time slot
 
-- **Session Operations** (new in 3.2):
-  - Seeded sessions with capacity, start/end times
-
 - **Authentication & Authorization**:
   - Login endpoint (`POST /api/auth/login`) → returns JWT
   - Role-based access: Employee, Admin, Receptionist, FacilitiesManager
@@ -50,14 +49,14 @@ This implementation covers **Assignments 2.1 through 3.2**:
 - **Persistence & Durability**:
   - Full EF Core + SQLite storage
   - Data survives app restarts
-  - Schema evolution via migrations (additive changes only)
+  - Schema evolution via additive migrations
 
-- **Advanced Functionality**:
-  - Double-booking prevention (409 Conflict)
-  - Input validation (400 Bad Request)
-  - Centralized error handling with categories
-  - Async operations throughout
-  - Structured logging of failures
+- **Advanced Querying (Assignment 3.3)**:
+  - Filtering: by room ID, location, date range, active rooms only
+  - Pagination: page & pageSize with total count and total pages
+  - Sorting: by start time, created at, room name (asc/desc)
+  - Projection: lightweight `BookingSummaryDto` for list views
+  - Performance: AsNoTracking() for read-only queries, IQueryable composition
 
 - **Technical Highlights**:
   - Thin controllers + centralized middleware
@@ -80,7 +79,7 @@ This implementation covers **Assignments 2.1 through 3.2**:
 1. **Clone the repository**:
    ```
    git clone [your-repo-link]
-   cd Conference-Booking-Demo/ConferenceBookingWebApi
+   cd ConferenceBookingWebApi
    ```
 
 2. **Install dependencies**:
@@ -112,7 +111,7 @@ This implementation covers **Assignments 2.1 through 3.2**:
    ```json
    {
      "email": "admin@demo.com",
-     "password": "*******"
+     "password": "********"
    }
    ```
    Response:
@@ -143,12 +142,26 @@ This implementation covers **Assignments 2.1 through 3.2**:
 | `/api/auth/login`              | POST   | Public                               | Authenticate & get JWT          |
 | `/api/Rooms`                   | GET    | Public                               | List all rooms                  |
 | `/api/Rooms/available?...`     | GET    | Public                               | Available rooms in time slot    |
-| `/api/Bookings`                | GET    | Admin                                | List all bookings               |
+| `/api/Bookings`                | GET    | Admin                                | List bookings with filter/pagination/sort |
 | `/api/Bookings/{id}`           | GET    | Authenticated                        | Get single booking              |
 | `/api/Bookings`                | POST   | Employee                             | Create booking                  |
 | `/api/Bookings/{id}`           | PUT    | Employee                             | Update booking time             |
 | `/api/Bookings/{id}/cancel`    | POST   | Employee                             | Cancel own booking              |
 | `/api/Bookings/{id}`           | DELETE | Admin                                | Delete booking                  |
+
+### Query Parameters for `/api/Bookings` (GET)
+
+| Parameter       | Type     | Description                                      | Default    |
+|-----------------|----------|--------------------------------------------------|------------|
+| `roomId`        | string   | Filter by specific room ID                       | —          |
+| `location`      | string   | Filter by room location (partial match)          | —          |
+| `startDate`     | DateTime | Filter bookings starting on/after this date      | —          |
+| `endDate`       | DateTime | Filter bookings starting on/before this date     | —          |
+| `activeRoomsOnly` | bool   | Only show bookings in active rooms               | false      |
+| `page`          | int      | Page number                                      | 1          |
+| `pageSize`      | int      | Records per page                                 | 10         |
+| `sortBy`        | string   | Sort field: starttime, createdat, roomname       | starttime  |
+| `sortOrder`     | string   | Sort direction: asc / desc                       | asc        |
 
 ### Error Handling
 
@@ -170,10 +183,11 @@ All errors return a consistent JSON shape:
 ## Design Choices
 
 - **Separation of Concerns** — Controllers only handle HTTP; business rules in `BookingManager`; persistence in `ApplicationDbContext`.
-- **DTOs** — Input/output contract protection.
+- **DTOs** — Input/output contract protection + lightweight projection for lists.
 - **Centralized Errors** — Global middleware for consistent shape and logging.
 - **Security** — ASP.NET Core Identity + JWT + role-based authorization.
 - **Persistence** — EF Core + SQLite (durable across restarts, supports schema evolution).
+- **Querying** — Database-level filtering/pagination/sorting using IQueryable + AsNoTracking for performance.
 - **Seeding** — Roles/users seeded at startup (configuration-driven); rooms seeded in-memory.
 
 ## Known Limitations
@@ -191,7 +205,8 @@ Test flow:
 2. Login → get JWT
 3. Use Bearer token for protected endpoints
 4. Create booking → restart app → list bookings → data persists
-5. Verify 401/403 on missing/wrong permissions
+5. Test filtering: `/api/Bookings?location=Cape Town&page=1&pageSize=5&sortBy=starttime&sortOrder=desc`
+6. Verify 401/403 on missing/wrong permissions
 
 ---  
 
