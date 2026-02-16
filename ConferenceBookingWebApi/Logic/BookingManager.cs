@@ -41,9 +41,20 @@ public class BookingManager
             .FirstOrDefaultAsync(b => b.Id == id);
     }
 
-    public async Task<Booking> CreateBookingAsync(BookingRequest request)
+    public async Task<Booking> CreateBookingAsync(BookingRequest request, string userId)
     {
         ArgumentNullException.ThrowIfNull(request);
+        if (string.IsNullOrEmpty(userId)) throw new ArgumentNullException(nameof(userId));
+
+        // Validate room exists and is active
+        var room = await _context.Rooms
+            .FirstOrDefaultAsync(r => r.RoomID == request.Room.RoomID);
+
+        if (room == null)
+            throw new InvalidOperationException("Room not found.");
+
+        if (!room.IsActive || room.DeletedAt.HasValue)
+            throw new InvalidOperationException("Cannot book an inactive or deleted room.");
 
         if (request.StartTime >= request.EndTime)
             throw new InvalidBookingTimeException("End time must be after start time.");
@@ -52,7 +63,7 @@ public class BookingManager
             throw new InvalidBookingTimeException("Cannot book in the past.");
 
         bool overlaps = await _context.Bookings.AnyAsync(b =>
-            b.RoomID == request.Room.RoomID &&
+            b.RoomID == room.RoomID &&
             (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Approved) &&
             request.StartTime < b.EndTime &&
             request.EndTime > b.StartTime);
@@ -60,7 +71,7 @@ public class BookingManager
         if (overlaps)
             throw new BookingConflictException("Time slot overlaps with an existing booking.");
 
-        var booking = Booking.Create(request.Room, request.StartTime, request.EndTime);
+        var booking = Booking.Create(room, userId, request.StartTime, request.EndTime);
         booking.UpdateStatus(BookingStatus.Approved);
 
         _context.Bookings.Add(booking);
@@ -87,7 +98,7 @@ public class BookingManager
         if (overlaps)
             throw new BookingConflictException("New time slot conflicts with another booking.");
 
-        var updated = Booking.Create(booking.Room, newStart, newEnd);
+        var updated = Booking.Create(booking.Room, booking.UserId, newStart, newEnd);
         updated.UpdateStatus(booking.Status);
 
         _context.Bookings.Remove(booking);
@@ -124,8 +135,6 @@ public class BookingManager
 
     public async Task<IReadOnlyList<ConferenceRoom>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
-        var allRooms = new SeedData().SeedRooms();
-
         var bookedRoomIds = await _context.Bookings
             .Where(b => (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Approved) &&
                         start < b.EndTime &&
@@ -134,15 +143,18 @@ public class BookingManager
             .Distinct()
             .ToListAsync();
 
-        return allRooms.Where(r => !bookedRoomIds.Contains(r.RoomID))
-                       .ToList()
-                       .AsReadOnly();
+        var allRooms = new SeedData().SeedRooms();
+
+        return allRooms
+            .Where(r => !bookedRoomIds.Contains(r.RoomID) && r.IsActive && r.DeletedAt == null)
+            .ToList()
+            .AsReadOnly();
     }
 
     public IQueryable<Booking> GetBookingsQueryable()
-        {
-            return _context.Bookings
+    {
+        return _context.Bookings
             .Include(b => b.Room)
-            .AsNoTracking();  
-        }
+            .AsNoTracking();
+    }
 }

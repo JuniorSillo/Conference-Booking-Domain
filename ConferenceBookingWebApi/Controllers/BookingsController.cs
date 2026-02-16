@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;  // ← ADDED: for User.FindFirstValue
 
 namespace ConferenceBookingWebApi.Controllers;
 
@@ -25,26 +26,85 @@ public class BookingsController : ControllerBase
         _seedData = seedData ?? throw new ArgumentNullException(nameof(seedData));
     }
 
-    // GET: api/bookings
-    // Supports filtering, pagination, sorting – all at database level
+    // GET: api/bookings – default list with pagination & sorting
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetBookings(
-        [FromQuery] string? roomId = null,
-        [FromQuery] string? location = null,
-        [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null,
-        [FromQuery] bool? activeRoomsOnly = null,
+    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetAllBookings(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string sortBy = "starttime",     // starttime, createdat, roomname
-        [FromQuery] string sortOrder = "asc")        // asc / desc
+        [FromQuery] string sortBy = "starttime",
+        [FromQuery] string sortOrder = "asc")
     {
-        // Start with IQueryable – defer execution to database
-        var query = _manager.GetBookingsQueryable()
-            .AsNoTracking();  // performance: read-only, no change tracking
+        return await GetFilteredBookings(null, null, null, null, null, page, pageSize, sortBy, sortOrder);
+    }
 
-        // Filtering – all done in database
+    // GET: api/bookings/room/{roomId}
+    [HttpGet("room/{roomId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetBookingsByRoom(
+        string roomId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string sortBy = "starttime",
+        [FromQuery] string sortOrder = "asc")
+    {
+        return await GetFilteredBookings(roomId: roomId, page: page, pageSize: pageSize, sortBy: sortBy, sortOrder: sortOrder);
+    }
+
+    // GET: api/bookings/location/{location}
+    [HttpGet("location/{location}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetBookingsByLocation(
+        string location,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string sortBy = "starttime",
+        [FromQuery] string sortOrder = "asc")
+    {
+        return await GetFilteredBookings(location: location, page: page, pageSize: pageSize, sortBy: sortBy, sortOrder: sortOrder);
+    }
+
+    // GET: api/bookings/date-range
+    [HttpGet("date-range")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetBookingsByDateRange(
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string sortBy = "starttime",
+        [FromQuery] string sortOrder = "asc")
+    {
+        return await GetFilteredBookings(startDate: startDate, endDate: endDate, page: page, pageSize: pageSize, sortBy: sortBy, sortOrder: sortOrder);
+    }
+
+    // GET: api/bookings/active-rooms
+    [HttpGet("active-rooms")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetBookingsActiveRoomsOnly(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string sortBy = "starttime",
+        [FromQuery] string sortOrder = "asc")
+    {
+        return await GetFilteredBookings(activeRoomsOnly: true, page: page, pageSize: pageSize, sortBy: sortBy, sortOrder: sortOrder);
+    }
+
+    // Shared filtering/pagination/sorting logic
+    private async Task<ActionResult<PagedResultDto<BookingSummaryDto>>> GetFilteredBookings(
+        string? roomId = null,
+        string? location = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool? activeRoomsOnly = null,
+        int page = 1,
+        int pageSize = 10,
+        string sortBy = "starttime",
+        string sortOrder = "asc")
+    {
+        var query = _manager.GetBookingsQueryable()
+            .AsNoTracking();
+
         if (!string.IsNullOrWhiteSpace(roomId))
             query = query.Where(b => b.RoomID == roomId);
 
@@ -60,7 +120,6 @@ public class BookingsController : ControllerBase
         if (activeRoomsOnly == true)
             query = query.Where(b => b.Room.IsActive);
 
-        // Sorting
         query = sortBy.ToLower() switch
         {
             "starttime" => sortOrder.ToLower() == "desc"
@@ -72,13 +131,11 @@ public class BookingsController : ControllerBase
             "roomname" => sortOrder.ToLower() == "desc"
                 ? query.OrderByDescending(b => b.Room.RoomName)
                 : query.OrderBy(b => b.Room.RoomName),
-            _ => query.OrderBy(b => b.StartTime)  // default
+            _ => query.OrderBy(b => b.StartTime)
         };
 
-        // Get total count before pagination
         var totalCount = await query.CountAsync();
 
-        // Apply pagination
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -106,7 +163,7 @@ public class BookingsController : ControllerBase
         return Ok(result);
     }
 
-    // GET single booking (unchanged from previous)
+    // GET single booking
     [HttpGet("{id:guid}")]
     [Authorize(Roles = "Employee,Admin,Receptionist,FacilitiesManager")]
     public async Task<ActionResult<BookingDto>> GetBooking(Guid id)
@@ -138,7 +195,7 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
-    // POST create (unchanged, just ensuring async)
+    // POST create – FIXED: now passes userId from JWT token
     [HttpPost]
     [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> CreateBooking([FromBody] CreateBookingRequest request)
@@ -150,6 +207,11 @@ public class BookingsController : ControllerBase
         if (room == null)
             return BadRequest(new { Message = "Room not found" });
 
+        // Get the current logged-in user's ID from the JWT token
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Message = "User ID not found in token" });
+
         var domainRequest = new BookingRequest
         {
             Room = room,
@@ -157,7 +219,7 @@ public class BookingsController : ControllerBase
             EndTime = request.EndTime
         };
 
-        var booking = await _manager.CreateBookingAsync(domainRequest);
+        var booking = await _manager.CreateBookingAsync(domainRequest, userId);  // ← FIXED: added userId
 
         var dto = new BookingDto
         {
@@ -182,7 +244,7 @@ public class BookingsController : ControllerBase
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, dto);
     }
 
-    // PUT update (unchanged, just async)
+    // PUT update
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Employee")]
     public async Task<ActionResult<BookingDto>> UpdateBooking(Guid id, [FromBody] UpdateBookingRequest request)
@@ -221,7 +283,7 @@ public class BookingsController : ControllerBase
         return Ok(dto);
     }
 
-    // POST cancel (unchanged)
+    // POST cancel
     [HttpPost("{id:guid}/cancel")]
     [Authorize(Roles = "Employee")]
     public async Task<IActionResult> CancelBooking(Guid id)
@@ -233,7 +295,7 @@ public class BookingsController : ControllerBase
         return Ok(new { Message = "Booking cancelled successfully" });
     }
 
-    // DELETE (unchanged)
+    // DELETE
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBooking(Guid id)

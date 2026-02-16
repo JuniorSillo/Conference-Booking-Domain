@@ -3749,6 +3749,7 @@
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 8.0.8",
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson >= 8.0.0",
       "Microsoft.AspNetCore.OpenApi >= 8.0.23",
+      "Microsoft.EntityFrameworkCore >= 8.0.8",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.8",
       "Microsoft.EntityFrameworkCore.Sqlite >= 8.0.8",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.0",
@@ -3758,19 +3759,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/cash/.nuget/packages/": {}
+    "C:\\Users\\Training Center 1\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
+      "projectUniqueName": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
       "projectName": "ConferenceBookingWebApi",
-      "projectPath": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/ConferenceBookingWebApi.csproj",
-      "packagesPath": "/Users/cash/.nuget/packages/",
-      "outputPath": "/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/obj/",
+      "projectPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
+      "packagesPath": "C:\\Users\\Training Center 1\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domain\\ConferenceBookingWebApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/cash/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Training Center 1\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -3793,8 +3794,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "10.0.100"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -3815,6 +3815,10 @@
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[8.0.23, )"
+          },
+          "Microsoft.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[8.0.8, )"
           },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -3864,7 +3868,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
