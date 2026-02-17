@@ -1,69 +1,49 @@
 import Button from './Button.jsx'
 
-function BookingCard({ booking }) {
+function BookingCard({ booking, onDelete }) {
   const {
     roomName,
     roomLocation,
-    capacity,        
     startTime,
     endTime,
     status,
     createdAt
   } = booking
 
-  
   const isPast = new Date(endTime) < new Date()
-
-  
-  const statusClass = `status-badge ${status.toLowerCase()}`
+  const canCancel = !isPast && status !== 'Cancelled' && status !== 'Completed'
 
   return (
     <div className="booking-card">
       <div className="card-header">
         <h3>{roomName}</h3>
-        {isPast && <span className="past-badge">Past Booking</span>}
+        {isPast && <span className="past-badge">Past</span>}
       </div>
 
-      {roomLocation && (
-        <p className="location">
-          <strong>Location:</strong> {roomLocation}
-        </p>
-      )}
-
-      <p className="capacity">
-        <strong>Capacity:</strong> {capacity} people
-      </p>
+      {roomLocation && <p className="location">{roomLocation}</p>}
 
       <div className="booking-time">
-        <p>
-          <strong>From:</strong> {new Date(startTime).toLocaleString('en-ZA', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
-          })}
-        </p>
-        <p>
-          <strong>To:</strong> {new Date(endTime).toLocaleString('en-ZA', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
-          })}
-        </p>
+        <p><strong>From:</strong> {new Date(startTime).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+        <p><strong>To:</strong> {new Date(endTime).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' })}</p>
       </div>
 
-      <p className={statusClass}>
-        <strong>Status:</strong> {status}
+      <p className={`status-badge ${status.toLowerCase()}`}>
+        Status: {status}
       </p>
 
       <p className="created">
-        <strong>Created:</strong> {new Date(createdAt).toLocaleDateString('en-ZA')}
+        Created: {new Date(createdAt).toLocaleDateString('en-ZA')}
       </p>
 
       <div className="card-actions">
         <Button label="View Details" variant="primary" />
-        <Button 
-          label="Cancel" 
-          variant="danger" 
-          disabled={isPast || status === 'Cancelled' || status === 'Completed'} 
-        />
+        {canCancel && onDelete && (
+          <Button 
+            label="Cancel" 
+            variant="danger" 
+            onClick={() => onDelete(booking.id)}
+          />
+        )}
       </div>
     </div>
   )
