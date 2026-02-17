@@ -103,6 +103,23 @@ This implementation covers **Assignments 2.1 through 3.3**:
    - Swagger UI: `https://localhost:5051/swagger`
    - Database file: `app.db` (SQLite) in project root
 
+### Frontend
+
+**Prerequisites**
+- Node.js 18+ & npm
+
+**Steps**
+1. Navigate to frontend folder:
+cd conference-booking-frontend
+
+2. Install dependencies:
+npm install
+
+3. Start development server:
+npm run dev
+Opens at `http://localhost:5173` (default Vite port)
+
+
 ## Usage
 
 ### Authentication Flow
