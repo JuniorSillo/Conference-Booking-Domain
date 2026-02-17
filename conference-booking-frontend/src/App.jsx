@@ -21,7 +21,7 @@ function App() {
       <main className="main-content">
         <h1>My Bookings</h1>
 
-        {/* Dropdown to switch between Past / Upcoming / Cancelled */}
+        
         <div className="view-selector">
           <label>View: </label>
           <select value={view} onChange={(e) => setView(e.target.value)}>

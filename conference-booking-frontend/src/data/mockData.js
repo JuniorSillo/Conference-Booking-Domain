@@ -1,7 +1,3 @@
-// src/data/mockData.js
-// Grouped mock bookings for a realistic user dashboard view
-// Past, Upcoming, and Cancelled — ready for tabs, dropdowns, or sections
-
 export const pastBookings = [
      {
        id: "past-001",

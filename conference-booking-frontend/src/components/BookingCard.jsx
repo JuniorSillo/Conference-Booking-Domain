@@ -1,4 +1,3 @@
-// src/components/BookingCard.jsx
 import Button from './Button.jsx'
 
 function BookingCard({ booking }) {
