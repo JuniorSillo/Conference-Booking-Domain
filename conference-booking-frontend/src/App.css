@@ -140,3 +140,25 @@ p {
   display: flex;
   gap: 1.5rem;
 }
+
+.past-badge {
+  background-color: #95a5a6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+
+.view-selector {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.view-selector select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
