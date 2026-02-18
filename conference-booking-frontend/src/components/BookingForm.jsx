@@ -10,13 +10,13 @@ function BookingForm({ onAddBooking }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Basic validation
+    
     if (!roomName.trim() || !startTime || !endTime) {
       setError('Please fill in all fields')
       return
     }
 
-    if (new Date(startTime) >= new Date(endTime)) {
+    if (new Date(endTime)  <=  new Date(startTime)) {
       setError('End time must be after start time')
       return
     }

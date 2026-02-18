@@ -64,6 +64,9 @@ function App() {
 
       <main className="main-content">
         <h1>My Bookings</h1>
+        <p className="total-count">
+          Total {view} bookings: <strong>{displayedBookings.length}</strong>
+        </p>
 
         <div className="view-selector">
           <label>View: </label>
@@ -97,9 +100,7 @@ function App() {
           )}
         </div>
 
-        <p className="total-count">
-          Total {view} bookings: <strong>{displayedBookings.length}</strong>
-        </p>
+        
       </main>
 
       <Footer />
