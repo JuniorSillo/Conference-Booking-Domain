@@ -1,16 +1,61 @@
-# React + Vite
+# Assignment 1.3 — README
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## The "Cloudflare Incident" Explained
 
-Currently, two official plugins are available:
+In June 2022, a Cloudflare outage was partially attributed to runaway processes caused by software feedback loops — a real-world example of the type of infinite loop React developers must guard against.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### What causes the infinite loop in React?
 
-## React Compiler
+The pattern looks like this:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```js
+// ⛔ DANGEROUS — infinite loop
+useEffect(() => {
+  fetchData().then(data => setBookings(data)) // sets state...
+}, [bookings]) // ...which is a dependency → re-triggers the effect → repeat forever
+```
 
-## Expanding the ESLint configuration
+Every time `setBookings` runs, `bookings` changes → the effect fires again → `setBookings` again → loop.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### How this project prevents it
+
+We use a dedicated **`fetchTrigger`** integer as the sole fetch dependency:
+
+```js
+const [fetchTrigger, setFetchTrigger] = useState(0)
+
+useEffect(() => {
+  // fetch and call setBookings inside here...
+}, [category, fetchTrigger]) // bookings is NOT here ✓
+```
+
+- `bookings` is **never** in the dependency array of the fetch effect.
+- The only way to re-run the effect is to call `setFetchTrigger(n => n + 1)` from a user action (Retry / Refresh button) or by changing `category`.
+- Because `fetchTrigger` is only changed by explicit user intent — never inside the effect itself — the loop is structurally impossible.
+
+This is the "Cloudflare Rule" from the assignment spec: *do not update a state variable inside an effect that is also a dependency of that same effect without a conditional exit.*
+
+---
+
+## AbortController — Race Condition Safety
+
+The `AbortController` is created **inside** the `useEffect` (not in component state). This means:
+
+1. Each effect run gets its own fresh controller.
+2. If the user clicks "Refresh" rapidly, each new effect run aborts the previous fetch via the cleanup function (`return () => controller.abort()`).
+3. Aborted fetches throw an `AbortError`, which we catch and ignore — only real server errors update the error state.
+
+This prevents **stale responses** from a slow previous fetch overwriting fresher data that arrived first.
+
+---
+
+## Heartbeat (setInterval Cleanup)
+
+`Navbar.jsx` runs a `setInterval` that logs every 3 seconds. The cleanup function returned from `useEffect` calls `clearInterval` when the component unmounts, preventing a memory leak where the interval keeps firing after the component is gone.
+
+```js
+useEffect(() => {
+  const id = setInterval(() => console.log('[Heartbeat] Checking...'), 3000)
+  return () => clearInterval(id) // ← prevents memory leak
+}, [])
+```

@@ -2,84 +2,127 @@ import { useState } from 'react'
 import Button from './Button.jsx'
 
 function BookingForm({ onAddBooking }) {
-  const [roomName, setRoomName] = useState('')
+  const [roomName, setRoomName]   = useState('')
   const [startTime, setStartTime] = useState('')
-  const [endTime, setEndTime] = useState('')
-  const [error, setError] = useState('')
+  const [endTime, setEndTime]     = useState('')
 
+  // Per-field touched state — only show errors after the user has attempted submit
+  const [submitted, setSubmitted] = useState(false)
+
+  // ── Validation ─────────────────────────────────────────────────────────────
+  const errors = {
+    roomName:  !roomName.trim()  ? 'Room name is required' : null,
+    startTime: !startTime        ? 'Start time is required' : null,
+    endTime:   !endTime          ? 'End time is required'
+               : (startTime && new Date(startTime) >= new Date(endTime))
+               ? 'End time must be after start time'
+               : null,
+  }
+
+  const hasErrors = Object.values(errors).some(Boolean)
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault()
+    setSubmitted(true)
+    if (hasErrors) return
 
-    
-    if (!roomName.trim() || !startTime || !endTime) {
-      setError('Please fill in all fields')
-      return
-    }
-
-    if (new Date(endTime)  <=  new Date(startTime)) {
-      setError('End time must be after start time')
-      return
-    }
-
-    // Create new booking object
-    const newBooking = {
+    onAddBooking({
       roomName,
       startTime,
       endTime,
       status: 'Pending',
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date().toISOString(),
+    })
 
-    onAddBooking(newBooking)
+    handleClear()
+  }
 
-    // Clear form
+  const handleClear = () => {
     setRoomName('')
     setStartTime('')
     setEndTime('')
-    setError('')
+    setSubmitted(false)
   }
 
+  // Helper: should this field show its error?
+  const fieldError = (key) => submitted && errors[key]
+
   return (
-    <form className="booking-form" onSubmit={handleSubmit}>
+    <form className="booking-form" onSubmit={handleSubmit} noValidate>
       <h2>New Booking</h2>
 
-      {error && <p className="form-error">{error}</p>}
+      {/* Summary banner — only shown on submit attempt when errors exist */}
+      {submitted && hasErrors && (
+        <div className="form-error-banner" role="alert">
+          <span className="form-error-icon">!</span>
+          Please fill in all required fields before submitting.
+        </div>
+      )}
 
-      <div className="form-group">
-        <label>Room Name</label>
+      {/* Room Name */}
+      <div className={`form-group ${fieldError('roomName') ? 'form-group--error' : ''}`}>
+        <label htmlFor="roomName">
+          Room Name <span className="required-star">*</span>
+        </label>
         <input
+          id="roomName"
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
           placeholder="e.g. Ocean View"
+          aria-invalid={!!fieldError('roomName')}
+          aria-describedby={fieldError('roomName') ? 'roomName-error' : undefined}
         />
+        {fieldError('roomName') && (
+          <span className="field-error" id="roomName-error" role="alert">
+            {errors.roomName}
+          </span>
+        )}
       </div>
 
-      <div className="form-group">
-        <label>Start Time</label>
+      {/* Start Time */}
+      <div className={`form-group ${fieldError('startTime') ? 'form-group--error' : ''}`}>
+        <label htmlFor="startTime">
+          Start Time <span className="required-star">*</span>
+        </label>
         <input
+          id="startTime"
           type="datetime-local"
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
+          aria-invalid={!!fieldError('startTime')}
+          aria-describedby={fieldError('startTime') ? 'startTime-error' : undefined}
         />
+        {fieldError('startTime') && (
+          <span className="field-error" id="startTime-error" role="alert">
+            {errors.startTime}
+          </span>
+        )}
       </div>
 
-      <div className="form-group">
-        <label>End Time</label>
+      {/* End Time */}
+      <div className={`form-group ${fieldError('endTime') ? 'form-group--error' : ''}`}>
+        <label htmlFor="endTime">
+          End Time <span className="required-star">*</span>
+        </label>
         <input
+          id="endTime"
           type="datetime-local"
           value={endTime}
           onChange={(e) => setEndTime(e.target.value)}
+          aria-invalid={!!fieldError('endTime')}
+          aria-describedby={fieldError('endTime') ? 'endTime-error' : undefined}
         />
+        {fieldError('endTime') && (
+          <span className="field-error" id="endTime-error" role="alert">
+            {errors.endTime}
+          </span>
+        )}
       </div>
 
       <div className="form-actions">
-        <Button label="Clear" variant="text" onClick={() => {
-          setRoomName('')
-          setStartTime('')
-          setEndTime('')
-          setError('')
-        }} />
+        <Button label="Clear" variant="text" type="button" onClick={handleClear} />
         <Button label="Book Room" variant="primary" type="submit" />
       </div>
     </form>

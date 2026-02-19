@@ -225,3 +225,674 @@ p {
 .refresh-btn:hover {
   background-color: #dfe6e9;
 }
+
+.loading-screen, .error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: #7f8c8d;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-screen p {
+  color: #c0392b;
+  margin-bottom: 1rem;
+}
+
+.category-selector {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.category-selector select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-left: 0.5rem;
+}
+
+/* From Uiverse.io by anand_4957 */ 
+.book,
+.book__pg-shadow,
+.book__pg {
+  animation: cover 5s ease-in-out infinite;
+}
+.book {
+  background-color: hsl(268, 90%, 65%);
+  border-radius: 0.25em;
+  box-shadow:
+    0 0.25em 0.5em hsla(0, 0%, 0%, 0.3),
+    0 0 0 0.25em hsl(278, 100%, 57%) inset;
+  padding: 0.25em;
+  perspective: 37.5em;
+  position: relative;
+  width: 8em;
+  height: 6em;
+  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+}
+.book__pg-shadow,
+.book__pg {
+  position: absolute;
+  left: 0.25em;
+  width: calc(50% - 0.25em);
+}
+.book__pg-shadow {
+  animation-name: shadow;
+  background-image: linear-gradient(
+    -45deg,
+    hsla(0, 0%, 0%, 0) 50%,
+    hsla(0, 0%, 0%, 0.3) 50%
+  );
+  filter: blur(0.25em);
+  top: calc(100% - 0.25em);
+  height: 3.75em;
+  transform: scaleY(0);
+  transform-origin: 100% 0%;
+}
+.book__pg {
+  animation-name: pg1;
+  background-color: hsl(223, 10%, 100%);
+  background-image: linear-gradient(
+    90deg,
+    hsla(223, 10%, 90%, 0) 87.5%,
+    hsl(223, 10%, 90%)
+  );
+  height: calc(100% - 0.5em);
+  transform-origin: 100% 50%;
+}
+.book__pg--2,
+.book__pg--3,
+.book__pg--4 {
+  background-image: repeating-linear-gradient(
+      hsl(223, 10%, 10%) 0 0.125em,
+      hsla(223, 10%, 10%, 0) 0.125em 0.5em
+    ),
+    linear-gradient(90deg, hsla(223, 10%, 90%, 0) 87.5%, hsl(223, 10%, 90%));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size:
+    2.5em 4.125em,
+    100% 100%;
+}
+.book__pg--2 {
+  animation-name: pg2;
+}
+.book__pg--3 {
+  animation-name: pg3;
+}
+.book__pg--4 {
+  animation-name: pg4;
+}
+.book__pg--5 {
+  animation-name: pg5;
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: hsl(223, 10%, 30%);
+    --fg: hsl(223, 10%, 90%);
+  }
+}
+
+/* Animations */
+@keyframes cover {
+  from,
+  5%,
+  45%,
+  55%,
+  95%,
+  to {
+    animation-timing-function: ease-out;
+    background-color: hsl(278, 84%, 67%);
+  }
+  10%,
+  40%,
+  60%,
+  90% {
+    animation-timing-function: ease-in;
+    background-color: hsl(271, 90%, 45%);
+  }
+}
+@keyframes shadow {
+  from,
+  10.01%,
+  20.01%,
+  30.01%,
+  40.01% {
+    animation-timing-function: ease-in;
+    transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+  }
+  5%,
+  15%,
+  25%,
+  35%,
+  45%,
+  55%,
+  65%,
+  75%,
+  85%,
+  95% {
+    animation-timing-function: ease-out;
+    transform: translate3d(0, 0, 1px) scaleY(0.2) rotateY(90deg);
+  }
+  10%,
+  20%,
+  30%,
+  40%,
+  50%,
+  to {
+    animation-timing-function: ease-out;
+    transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+  }
+  50.01%,
+  60.01%,
+  70.01%,
+  80.01%,
+  90.01% {
+    animation-timing-function: ease-in;
+    transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+  }
+  60%,
+  70%,
+  80%,
+  90%,
+  to {
+    animation-timing-function: ease-out;
+    transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+  }
+}
+@keyframes pg1 {
+  from,
+  to {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.4deg);
+  }
+  10%,
+  15% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(180deg);
+  }
+  20%,
+  80% {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(180deg);
+  }
+  85%,
+  90% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(180deg);
+  }
+}
+@keyframes pg2 {
+  from,
+  to {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+  }
+  5%,
+  10% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+  }
+  20%,
+  25% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+  }
+  30%,
+  70% {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+  }
+  75%,
+  80% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+  }
+  90%,
+  95% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+  }
+}
+@keyframes pg3 {
+  from,
+  10%,
+  90%,
+  to {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+  }
+  15%,
+  20% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+  }
+  30%,
+  35% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+  }
+  40%,
+  60% {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+  }
+  65%,
+  70% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+  }
+  80%,
+  85% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+  }
+}
+@keyframes pg4 {
+  from,
+  20%,
+  80%,
+  to {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+  }
+  25%,
+  30% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+  }
+  40%,
+  45% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+  }
+  50% {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+  }
+  55%,
+  60% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+  }
+  70%,
+  75% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+  }
+}
+@keyframes pg5 {
+  from,
+  30%,
+  70%,
+  to {
+    animation-timing-function: ease-in;
+    background-color: hsl(223, 10%, 45%);
+    transform: translate3d(0, 0, 1px) rotateY(0);
+  }
+  35%,
+  40% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0deg);
+  }
+  50% {
+    animation-timing-function: ease-in-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(179.6deg);
+  }
+  60%,
+  65% {
+    animation-timing-function: ease-out;
+    background-color: hsl(223, 10%, 100%);
+    transform: translate3d(0, 0, 1px) rotateY(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   App.css ADDITIONS — paste these into your existing App.css
+   (or replace the whole file if you prefer a clean slate)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Loading screen ────────────────────────────────────────────── */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1.25rem;
+  background: var(--bg, #0f1117);
+}
+
+.loading-text {
+  color: var(--muted, #8b8fa8);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Spinner ────────────────────────────────────────────────────── */
+.spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.08);
+  border-top-color: #6c8eff;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Smaller inline spinner used in syncing-badge */
+.syncing-badge .spinner-ring {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Error screens ──────────────────────────────────────────────── */
+.error-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg, #0f1117);
+  padding: 2rem;
+}
+
+.error-card {
+  background: #1a1d2e;
+  border: 1px solid #ff4d6d44;
+  border-radius: 16px;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 0 40px #ff4d6d22;
+}
+
+.error-icon {
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.error-title {
+  font-size: 1.4rem;
+  color: #ff4d6d;
+  margin: 0 0 0.5rem;
+}
+
+.error-msg {
+  color: #8b8fa8;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Soft error banner (shown when stale data exists) */
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #ff4d6d18;
+  border: 1px solid #ff4d6d44;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  color: #ff8fa3;
+  font-size: 0.88rem;
+}
+
+/* Stale data notice */
+.stale-notice {
+  background: #fbbf2418;
+  border: 1px solid #fbbf2440;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #fbbf24;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:not(:disabled):hover { opacity: 0.85; }
+.btn:not(:disabled):active { transform: scale(0.97); }
+
+.btn-primary   { background: #6c8eff; color: #fff; }
+.btn-secondary { background: #1e2235; color: #c8cde8; border: 1px solid #2e3452; }
+.btn-sm        { padding: 0.3rem 0.75rem; font-size: 0.8rem; }
+
+/* ── Page header ────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title { margin: 0; }
+
+.syncing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #6c8eff22;
+  border: 1px solid #6c8eff44;
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: #6c8eff;
+}
+
+/* ── Controls row ───────────────────────────────────────────────── */
+.controls-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.control-label {
+  font-size: 0.78rem;
+  color: #8b8fa8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.control-select {
+  background: #1e2235;
+  color: #c8cde8;
+  border: 1px solid #2e3452;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.control-select:focus { border-color: #6c8eff; }
+
+.refresh-btn { align-self: flex-end; }
+
+/* ── Stale grid overlay ─────────────────────────────────────────── */
+.bookings-grid { transition: opacity 0.2s; }
+.bookings-stale { opacity: 0.5; pointer-events: none; }
+
+/* ── Navbar heartbeat dot ───────────────────────────────────────── */
+.navbar-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.heartbeat-dot {
+  width: 8px;
+  height: 8px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.heartbeat-label {
+  font-size: 0.78rem;
+  color: #4ade80;
+  letter-spacing: 0.05em;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 #4ade8066; }
+  50%       { opacity: 0.6; box-shadow: 0 0 0 5px #4ade8000; }
+}
+
+/* ── Empty state ────────────────────────────────────────────────── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #8b8fa8;
+  padding: 3rem 0;
+}
+
+/* ── BookingForm validation styles — add to your App.css ── */
+
+/* Required asterisk */
+.required-star {
+  color: #ff4d6d;
+  margin-left: 2px;
+}
+
+/* Error summary banner */
+.form-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #ff4d6d18;
+  border: 1px solid #ff4d6d55;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  color: #ff8fa3;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+  animation: shake 0.35s ease;
+}
+
+.form-error-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  background: #ff4d6d;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Shake animation on failed submit */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+/* Field-level error state */
+.form-group--error label {
+  color: #ff8fa3;
+}
+
+.form-group--error input {
+  border-color: #ff4d6d !important;
+  background: #ff4d6d08;
+  box-shadow: 0 0 0 3px #ff4d6d22;
+  animation: shake 0.35s ease;
+}
+
+/* Inline field error message */
+.field-error {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: #ff8fa3;
+  /* slide down smoothly */
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
