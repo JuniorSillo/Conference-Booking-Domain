@@ -1,7 +1,6 @@
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
-using ConferenceBooking.Persistence;
-using ConferenceBooking.Data;
+using ConferenceBookingWebApi.Data;
 using ConferenceBookingWebApi.Middleware;
 using ConferenceBookingWebApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,20 +9,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using ConferenceBookingWebApi.Data;
+using ConferenceBooking.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
 
-// Add Identity
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    ));
+
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Add JWT Authentication
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,10 +45,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add Authorization
+
 builder.Services.AddAuthorization();
 
-// Controllers + Swagger
+
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -61,7 +62,7 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Please enter JWT with Bearer",
+        Description = "Please enter JWT with Bearer into field",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
@@ -78,18 +79,25 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Register services
+
 builder.Services.AddSingleton<SeedData>();
 builder.Services.AddScoped<BookingManager>();
-builder.Services.AddScoped<BookingFileStore>(sp =>
+
+
+builder.Services.AddCors(options =>
 {
-    var manager = sp.GetRequiredService<BookingManager>();
-    return new BookingFileStore("bookings.json", manager);
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")   
+              .AllowAnyMethod()                      
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
 
-// Middleware
+
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -99,17 +107,29 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");           
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Seed Identity + load bookings (after app is ready)
+
 app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
     using var scope = app.Services.CreateScope();
-    var bookingManager = scope.ServiceProvider.GetRequiredService<BookingManager>();
+    var services = scope.ServiceProvider;
+
+    // Apply migrations automatically
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+
+    // Seed Identity (roles + users)
+    await IdentitySeeder.SeedAsync(services, app.Configuration);
+
+    // Load bookings (EF Core)
+    var bookingManager = services.GetRequiredService<BookingManager>();
     await bookingManager.LoadBookingsAsync();
+
+    Console.WriteLine("✅ Backend started successfully with PostgreSQL + CORS enabled.");
 });
 
 app.Run();

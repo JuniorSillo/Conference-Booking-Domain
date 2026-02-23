@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domainn\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj": {}
+    "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-DomainLinking\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domainn\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj": {
+    "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-DomainLinking\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domainn\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
+        "projectUniqueName": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-DomainLinking\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
         "projectName": "ConferenceBookingWebApi",
-        "projectPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domainn\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
+        "projectPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-DomainLinking\\ConferenceBookingWebApi\\ConferenceBookingWebApi.csproj",
         "packagesPath": "C:\\Users\\Training Center 1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-Domainn\\ConferenceBookingWebApi\\obj\\",
+        "outputPath": "C:\\Users\\Training Center 1\\Documents\\Conference-Booking-DomainLinking\\ConferenceBookingWebApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Training Center 1\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -82,6 +82,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

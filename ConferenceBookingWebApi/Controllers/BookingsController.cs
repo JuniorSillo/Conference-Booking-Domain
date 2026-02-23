@@ -25,6 +25,11 @@ public class BookingsController : ControllerBase
         _manager = manager ?? throw new ArgumentNullException(nameof(manager));
         _seedData = seedData ?? throw new ArgumentNullException(nameof(seedData));
     }
+    [HttpGet("health")]
+    public IActionResult HealthCheck()
+    {
+    return Ok(new { status = "OK", timestamp = DateTime.UtcNow });
+    }
 
     // GET: api/bookings – default list with pagination & sorting
     [HttpGet]
