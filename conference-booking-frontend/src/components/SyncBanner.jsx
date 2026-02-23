@@ -1,4 +1,4 @@
-// src/components/SyncBanner.jsx
+
 
 function SyncBanner({ error, isStale, onRetry }) {
      return (

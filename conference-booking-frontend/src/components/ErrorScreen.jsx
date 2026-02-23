@@ -1,4 +1,4 @@
-// src/components/ErrorScreen.jsx
+
 
 function ErrorScreen({ message, onRetry }) {
      return (

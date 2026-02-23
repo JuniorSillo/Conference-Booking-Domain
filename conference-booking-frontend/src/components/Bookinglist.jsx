@@ -1,4 +1,4 @@
-// src/components/BookingList.jsx
+
 import BookingCard from './BookingCard.jsx'
 
 function BookingList({ bookings, view, category, isSyncing, onDelete }) {

@@ -1,4 +1,4 @@
-// src/components/LoadingScreen.jsx
+
 import LoadingSpinner from './LoadingSpinner.jsx'
 
 function LoadingScreen() {

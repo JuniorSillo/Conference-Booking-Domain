@@ -1,11 +1,3 @@
-// src/services/bookingService.js
-//
-// Simulates a real REST API:
-//  • Random latency between 500ms and 2500ms
-//  • 20% failure rate to force error-state handling in the UI
-//  • Respects an AbortSignal so in-flight "requests" can be cancelled
-//  • Filters by category when provided (mirrors a real query-param filter)
-
 import { pastBookings, upcomingBookings, cancelledBookings } from '../data/mockData';
 
 /**
@@ -15,8 +7,8 @@ import { pastBookings, upcomingBookings, cancelledBookings } from '../data/mockD
  * @returns {Promise<Array>}
  */
 export function fetchAllBookings({ signal, category = 'All' } = {}) {
-  const delay = Math.floor(Math.random() * 2000) + 500   // 500–2500 ms
-  const shouldFail = Math.random() < 0.2                 // 20% failure rate
+  const delay = Math.floor(Math.random() * 2000) + 500   
+  const shouldFail = Math.random() < 0.2                 
 
   return new Promise((resolve, reject) => {
     // If already aborted before the timer even starts, bail immediately

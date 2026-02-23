@@ -1,5 +1,3 @@
-// src/components/DashboardControls.jsx
-
 function DashboardControls({ category, onCategoryChange, view, onViewChange, onRefresh, isSyncing }) {
      return (
        <div className="controls-row">

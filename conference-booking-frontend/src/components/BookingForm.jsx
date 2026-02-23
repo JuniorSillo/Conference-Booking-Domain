@@ -6,10 +6,10 @@ function BookingForm({ onAddBooking }) {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime]     = useState('')
 
-  // Per-field touched state — only show errors after the user has attempted submit
+  
   const [submitted, setSubmitted] = useState(false)
 
-  // ── Validation ─────────────────────────────────────────────────────────────
+  
   const errors = {
     roomName:  !roomName.trim()  ? 'Room name is required' : null,
     startTime: !startTime        ? 'Start time is required' : null,
@@ -21,7 +21,7 @@ function BookingForm({ onAddBooking }) {
 
   const hasErrors = Object.values(errors).some(Boolean)
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // Submit 
   const handleSubmit = (e) => {
     e.preventDefault()
     setSubmitted(true)
@@ -52,7 +52,7 @@ function BookingForm({ onAddBooking }) {
     <form className="booking-form" onSubmit={handleSubmit} noValidate>
       <h2>New Booking</h2>
 
-      {/* Summary banner — only shown on submit attempt when errors exist */}
+      {/* Summary banner */}
       {submitted && hasErrors && (
         <div className="form-error-banner" role="alert">
           <span className="form-error-icon">!</span>

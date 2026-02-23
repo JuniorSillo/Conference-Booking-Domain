@@ -1,4 +1,4 @@
-// src/components/PageHeader.jsx
+
 import LoadingSpinner from './LoadingSpinner.jsx'
 
 function PageHeader({ isSyncing }) {

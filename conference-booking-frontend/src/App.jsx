@@ -1,12 +1,7 @@
-// src/App.jsx
-// This file handles state, effects, and data logic only.
-// All markup lives in dedicated components — no h1, p, div, etc. here.
-
 import { useState, useEffect } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './App.css'
-
 import Navbar            from './components/Navbar.jsx'
 import Footer            from './components/Footer.jsx'
 import LoadingScreen     from './components/LoadingScreen.jsx'
@@ -18,7 +13,7 @@ import BookingForm       from './components/BookingForm.jsx'
 import BookingList from './components/Bookinglist.jsx'
 import { fetchAllBookings } from './services/bookingService.js'
 
-// ── Storage helpers ───────────────────────────────────────────────────────────
+// Storage helpers 
 const API_STORAGE_KEY  = 'conference-bookings-api'
 const USER_STORAGE_KEY = 'conference-bookings-user'
 
@@ -37,7 +32,7 @@ function writeToStorage(key, data) {
   } catch { /* quota errors — silent fail */ }
 }
 
-// ── Merge helper ──────────────────────────────────────────────────────────────
+// ── Merge helper 
 // Combines API and user bookings; user bookings win on id collision.
 function mergeBookings(apiBookings, userBookings) {
   const map = new Map()
@@ -46,7 +41,7 @@ function mergeBookings(apiBookings, userBookings) {
   return Array.from(map.values())
 }
 
-// ── Filter helper ─────────────────────────────────────────────────────────────
+// Filter helper
 const UPCOMING_STATUSES = new Set(['Approved', 'Pending'])
 
 function filterByView(bookings, view) {
@@ -56,7 +51,7 @@ function filterByView(bookings, view) {
   return bookings
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
+// App 
 function App() {
   const [apiBookings,  setApiBookings]  = useState(() => readFromStorage(API_STORAGE_KEY))
   const [userBookings, setUserBookings] = useState(() => readFromStorage(USER_STORAGE_KEY))
@@ -69,16 +64,16 @@ function App() {
   const [category, setCategory] = useState('All')
   const [fetchTrigger, setFetchTrigger] = useState(0)
 
-  // ── Persist slices separately ─────────────────────────────────────────────
+  // Persist slices separately 
   useEffect(() => { writeToStorage(API_STORAGE_KEY,  apiBookings)  }, [apiBookings])
   useEffect(() => { writeToStorage(USER_STORAGE_KEY, userBookings) }, [userBookings])
 
-  // ── Merge + filter (derived — no effect needed) ───────────────────────────
+  // Merge + filter (derived — no effect needed) 
   const allBookings      = mergeBookings(apiBookings, userBookings)
   const sourceList       = backgroundLoad && staleBookings.length > 0 ? staleBookings : allBookings
   const displayedBookings = filterByView(sourceList, view)
 
-  // ── Fetch effect ──────────────────────────────────────────────────────────
+  // Fetch effect 
   useEffect(() => {
     const controller = new AbortController()
 
@@ -118,7 +113,7 @@ function App() {
   // apiBookings / userBookings / allBookings intentionally omitted —
   // including them would trigger an infinite loop (the Cloudflare Rule).
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // Handlers 
   const addBooking = (newBooking) => {
     setUserBookings((prev) => [
       ...prev,
@@ -139,14 +134,14 @@ function App() {
 
   const triggerRefetch = () => setFetchTrigger((n) => n + 1)
 
-  // ── Guards ────────────────────────────────────────────────────────────────
+  // Guards 
   if (loading && allBookings.length === 0 && staleBookings.length === 0)
     return <LoadingScreen />
 
   if (error && allBookings.length === 0 && staleBookings.length === 0)
     return <ErrorScreen message={error} onRetry={triggerRefetch} />
 
-  // ── Main render ───────────────────────────────────────────────────────────
+  // Main render 
   return (
     <>
       <Navbar />
