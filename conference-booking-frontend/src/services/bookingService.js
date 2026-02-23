@@ -1,50 +1,57 @@
-import { pastBookings, upcomingBookings, cancelledBookings } from '../data/mockData';
+// src/services/bookingService.js
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-/**
- * Fetches all bookings from the simulated API.
- *
- * @param {{ signal?: AbortSignal, category?: string }} options
- * @returns {Promise<Array>}
- */
-export function fetchAllBookings({ signal, category = 'All' } = {}) {
-  const delay = Math.floor(Math.random() * 2000) + 500   
-  const shouldFail = Math.random() < 0.2                 
+if (!API_BASE) {
+  throw new Error('VITE_API_BASE_URL is not defined in .env');
+}
 
-  return new Promise((resolve, reject) => {
-    // If already aborted before the timer even starts, bail immediately
-    if (signal?.aborted) {
-      reject(new DOMException('Fetch aborted', 'AbortError'))
-      return
-    }
+export async function fetchAllBookings(signal = null) {
+  const response = await fetch(`${API_BASE}/Bookings`, {
+    method: 'GET',
+    signal,
+    headers: {
+      'Content-Type': 'application/json',
+      // If you have JWT auth later: 'Authorization': `Bearer ${token}`
+    },
+  });
 
-    const timer = setTimeout(() => {
-      // Check abort again once the delay has elapsed
-      if (signal?.aborted) {
-        reject(new DOMException('Fetch aborted', 'AbortError'))
-        return
-      }
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Failed to fetch bookings: ${response.status} - ${errText}`);
+  }
 
-      if (shouldFail) {
-        reject(new Error('Server Error 503: Failed to fetch bookings. Please try again.'))
-        return
-      }
+  const data = await response.json();
+  // Assuming your backend returns { items: [...], totalCount, ... }
+  return data.items || data; // fallback to direct array if not paged
+}
 
-      // Combine all mock data groups
-      const allBookings = [...pastBookings, ...upcomingBookings, ...cancelledBookings]
+export async function createBooking(newBooking, token = null) {
+  const response = await fetch(`${API_BASE}/Bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify(newBooking),
+  });
 
-      // Apply category filter (mirrors a real API query param)
-      const result =
-        category === 'All'
-          ? allBookings
-          : allBookings.filter((b) => b.category === category)
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Failed to create booking: ${response.status} - ${errText}`);
+  }
 
-      resolve(result)
-    }, delay)
+  return await response.json();
+}
 
-    // If the AbortSignal fires while the timer is still running, cancel it
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timer)
-      reject(new DOMException('Fetch aborted', 'AbortError'))
-    })
-  })
+export async function deleteBooking(id, token = null) {
+  const response = await fetch(`${API_BASE}/Bookings/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete booking: ${response.status}`);
+  }
 }
