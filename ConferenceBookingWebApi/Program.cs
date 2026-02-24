@@ -13,18 +13,18 @@ using ConferenceBooking.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// Configure DbContext with PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
-
+// Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-
+// Configure JWT authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,10 +45,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddAuthorization();
 
-
+// Configure controllers with Newtonsoft JSON
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -79,17 +78,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
+// Register services
 builder.Services.AddSingleton<SeedData>();
 builder.Services.AddScoped<BookingManager>();
 
-
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")   
-              .AllowAnyMethod()                      
+        policy.WithOrigins("http://localhost:5173") // Vite dev server
+              .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
@@ -97,7 +96,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
+// Global exception middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -107,29 +106,42 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");           
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-
+// Seed database and load bookings at startup
 app.Lifetime.ApplicationStarted.Register(async () =>
 {
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
 
-    // Apply migrations automatically
+    // Apply EF Core migrations
     var dbContext = services.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.MigrateAsync();
 
-    // Seed Identity (roles + users)
+    // Seed Identity roles & users
     await IdentitySeeder.SeedAsync(services, app.Configuration);
+
+    // Seed rooms into database
+    var seedData = services.GetRequiredService<SeedData>();
+    var rooms = seedData.SeedRooms();
+
+    foreach (var room in rooms)
+    {
+        if (!dbContext.Rooms.Any(r => r.RoomID == room.RoomID))
+        {
+            dbContext.Rooms.Add(room);
+        }
+    }
+    await dbContext.SaveChangesAsync();
 
     // Load bookings (EF Core)
     var bookingManager = services.GetRequiredService<BookingManager>();
     await bookingManager.LoadBookingsAsync();
 
-    Console.WriteLine("✅ Backend started successfully with PostgreSQL + CORS enabled.");
+    Console.WriteLine("✅ Backend started successfully with PostgreSQL + rooms seeded + CORS enabled.");
 });
 
 app.Run();

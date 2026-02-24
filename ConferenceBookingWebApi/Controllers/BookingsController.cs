@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Security.Claims;  // ← ADDED: for User.FindFirstValue
+using System.Security.Claims;  
 
 namespace ConferenceBookingWebApi.Controllers;
 

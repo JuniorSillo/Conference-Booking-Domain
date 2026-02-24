@@ -2,16 +2,26 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE) {
-  throw new Error('VITE_API_BASE_URL is not defined in .env');
+  throw new Error("VITE_API_BASE_URL is not defined in .env");
 }
 
+// Helper to get token from localStorage
+function getToken() {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("JWT token is required to fetch bookings.");
+  return token;
+}
+
+// ── Fetch all bookings ─────────────────────────────────────────────────────
 export async function fetchAllBookings(signal = null) {
+  const token = getToken();
+
   const response = await fetch(`${API_BASE}/Bookings`, {
-    method: 'GET',
+    method: "GET",
     signal,
     headers: {
-      'Content-Type': 'application/json',
-      // If you have JWT auth later: 'Authorization': `Bearer ${token}`
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     },
   });
 
@@ -21,16 +31,18 @@ export async function fetchAllBookings(signal = null) {
   }
 
   const data = await response.json();
-  // Assuming your backend returns { items: [...], totalCount, ... }
-  return data.items || data; // fallback to direct array if not paged
+  return data.items || data;
 }
 
-export async function createBooking(newBooking, token = null) {
+// ── Create a new booking ───────────────────────────────────────────────────
+export async function createBooking(newBooking) {
+  const token = getToken();
+
   const response = await fetch(`${API_BASE}/Bookings`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     },
     body: JSON.stringify(newBooking),
   });
@@ -43,15 +55,19 @@ export async function createBooking(newBooking, token = null) {
   return await response.json();
 }
 
-export async function deleteBooking(id, token = null) {
+// ── Delete a booking ──────────────────────────────────────────────────────
+export async function deleteBooking(id) {
+  const token = getToken();
+
   const response = await fetch(`${API_BASE}/Bookings/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      ...(token && { Authorization: `Bearer ${token}` }),
+      "Authorization": `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to delete booking: ${response.status}`);
+    const errText = await response.text();
+    throw new Error(`Failed to delete booking: ${response.status} - ${errText}`);
   }
 }
