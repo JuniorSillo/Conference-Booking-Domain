@@ -16,7 +16,7 @@ export function useBookings() {
       setError(null);
       try {
         const data = await apiClient.get('/Bookings', { signal: controller.signal });
-        setBookings(data);  // no .data — interceptor unwrapped it
+        setBookings(data);  
       } catch (err) {
         if (axios.isCancel(err)) {
           console.log('Request cancelled:', err.message);
@@ -39,17 +39,16 @@ export function useBookings() {
 
     // Cleanup: abort on unmount or dependency change
     return () => controller.abort();
-  }, []);  // empty deps = mount only; add deps for category later if needed
+  }, []);  
 
-  // Derived filtered bookings (no state)
-  const filteredBookings = () => {
+    const filteredBookings = () => {
     if (view === 'past') return bookings.filter(b => b.status === 'Completed');
     if (view === 'upcoming') return bookings.filter(b => ['Approved', 'Pending'].includes(b.status));
     if (view === 'cancelled') return bookings.filter(b => b.status === 'Cancelled');
     return bookings;
   };
 
-  // Add booking (optimistic)
+  // Add booking 
   const addBooking = async (newBooking) => {
     const optimisticId = `optimistic-${Date.now()}`;
     const optimistic = { ...newBooking, id: optimisticId };
@@ -64,7 +63,7 @@ export function useBookings() {
     }
   };
 
-  // Delete booking (optimistic)
+  // Delete booking
   const removeBooking = async (id) => {
     const original = bookings.find(b => b.id === id);
     setBookings(prev => prev.filter(b => b.id !== id));

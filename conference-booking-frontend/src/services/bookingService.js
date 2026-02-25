@@ -2,7 +2,7 @@
 import apiClient from '../api/apiClient.js';  // all through singleton
 
 export async function fetchAllBookings(signal) {
-  return await apiClient.get('/Bookings', { signal });  // interceptor unwraps .data
+  return await apiClient.get('/Bookings', { signal });  // interceptor unwraps
 }
 
 export async function createBooking(newBooking) {

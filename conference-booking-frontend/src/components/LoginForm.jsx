@@ -59,14 +59,14 @@ export function LoginForm() {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  credentials: "include", // <-- add this if backend needs cookies (optional)
+  credentials: "include", 
   body: JSON.stringify({ email, password }),
 });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Use the backend's error message if available, otherwise a generic one
+        
         setServerError(data?.message || "Login failed. Please try again.");
         return;
       }

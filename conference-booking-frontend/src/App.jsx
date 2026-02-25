@@ -20,7 +20,7 @@ function App() {
     addBooking,
     removeBooking,
     fetchBookings
-  } = useBookings(token) // <-- pass token to hook
+  } = useBookings(token) 
 
   // Fetch bookings automatically after login
   useEffect(() => {
