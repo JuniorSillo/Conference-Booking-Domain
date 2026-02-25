@@ -1,124 +1,89 @@
-
-import { useState, useEffect, useMemo } from 'react'
-import { fetchAllBookings, createBooking, deleteBooking } from '../services/bookingService.js'
-
-// Storage keys
-const API_STORAGE_KEY = 'conference-bookings-api'
-const USER_STORAGE_KEY = 'conference-bookings-user'
-
-const readFromStorage = (key) => {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-const writeToStorage = (key, data) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data))
-  } catch {}
-}
-
-const mergeBookings = (apiBookings, userBookings) => {
-  const map = new Map()
-  apiBookings.forEach(b => map.set(b.id, b))
-  userBookings.forEach(b => map.set(b.id, b))
-  return Array.from(map.values())
-}
+// src/hooks/useBookings.js
+import { useState, useEffect } from 'react'
+import apiClient from '../api/apiClient.js'  // centralized client
 
 export function useBookings() {
-  const [apiBookings, setApiBookings] = useState(() => readFromStorage(API_STORAGE_KEY))
-  const [userBookings, setUserBookings] = useState(() => readFromStorage(USER_STORAGE_KEY))
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [view, setView] = useState('upcoming')
+  const [bookings, setBookings] = useState([]);  // initial empty array
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [view, setView] = useState('upcoming');
 
-  // Persist
-  useEffect(() => { writeToStorage(API_STORAGE_KEY, apiBookings) }, [apiBookings])
-  useEffect(() => { writeToStorage(USER_STORAGE_KEY, userBookings) }, [userBookings])
-
-  // Fetch real data on mount
   useEffect(() => {
+    const controller = new AbortController();  // for cancellation
+
     const loadBookings = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
-        const data = await fetchAllBookings()
-        setApiBookings(data)
-        toast.success('Bookings loaded from server')
+        const data = await apiClient.get('/Bookings', { signal: controller.signal });
+        setBookings(data);  // no .data — interceptor unwrapped it
       } catch (err) {
-        setError(err.message)
-        console.error('API fetch failed:', err)
+        if (axios.isCancel(err)) {
+          console.log('Request cancelled:', err.message);
+          return;  // ignore cancelled (cleanup)
+        } else if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+          setError('Request timed out — server took too long to respond');
+        } else if (err.message.includes('Network Error')) {
+          setError('Network error — check your internet or server status');
+        } else if (err.response) {
+          setError(`Server error: ${err.response.status} - ${err.response.data?.message || 'Unknown error'}`);
+        } else {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadBookings()
-  }, [])
+    loadBookings();
 
-  // Derived merged + filtered
-  const allBookings = useMemo(() => mergeBookings(apiBookings, userBookings), [apiBookings, userBookings])
+    // Cleanup: abort on unmount or dependency change
+    return () => controller.abort();
+  }, []);  // empty deps = mount only; add deps for category later if needed
 
-  const filteredBookings = useMemo(() => {
-    if (view === 'past') return allBookings.filter(b => b.status === 'Completed')
-    if (view === 'upcoming') return allBookings.filter(b => ['Approved', 'Pending'].includes(b.status))
-    if (view === 'cancelled') return allBookings.filter(b => b.status === 'Cancelled')
-    return allBookings
-  }, [allBookings, view])
+  // Derived filtered bookings (no state)
+  const filteredBookings = () => {
+    if (view === 'past') return bookings.filter(b => b.status === 'Completed');
+    if (view === 'upcoming') return bookings.filter(b => ['Approved', 'Pending'].includes(b.status));
+    if (view === 'cancelled') return bookings.filter(b => b.status === 'Cancelled');
+    return bookings;
+  };
 
-  // Actions
+  // Add booking (optimistic)
   const addBooking = async (newBooking) => {
-    // Optimistic add
-    const optimistic = {
-      ...newBooking,
-      id: `optimistic-${Date.now()}`,
-      status: 'Pending',
-      createdAt: new Date().toISOString(),
-    }
-    setUserBookings(prev => [...prev, optimistic])
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimistic = { ...newBooking, id: optimisticId };
+    setBookings(prev => [...prev, optimistic]);
 
     try {
-      const saved = await createBooking(newBooking)
-      // Replace optimistic with real
-      setUserBookings(prev => prev.map(b => b.id === optimistic.id ? saved : b))
-      setApiBookings(prev => [...prev, saved]) // also add to API cache
+      const saved = await apiClient.post('/Bookings', newBooking);
+      setBookings(prev => prev.map(b => b.id === optimisticId ? saved : b));
     } catch (err) {
-      // Rollback on failure
-      setUserBookings(prev => prev.filter(b => b.id !== optimistic.id))
-      setError('Failed to save booking')
-      toast.error('Failed to create booking')
+      setBookings(prev => prev.filter(b => b.id !== optimisticId));
+      setError('Failed to create booking');
     }
-  }
+  };
 
+  // Delete booking (optimistic)
   const removeBooking = async (id) => {
-    // Optimistic remove
-    const original = allBookings.find(b => b.id === id)
-    setUserBookings(prev => prev.filter(b => b.id !== id))
-    setApiBookings(prev => prev.filter(b => b.id !== id))
+    const original = bookings.find(b => b.id === id);
+    setBookings(prev => prev.filter(b => b.id !== id));
 
     try {
-      await deleteBooking(id)
+      await apiClient.delete(`/Bookings/${id}`);
     } catch (err) {
-      // Rollback
-      if (original) {
-        setUserBookings(prev => [...prev, original])
-        setApiBookings(prev => [...prev, original])
-      }
-      setError('Failed to delete booking')
-      toast.error('Failed to delete booking')
+      if (original) setBookings(prev => [...prev, original]);
+      setError('Failed to delete booking');
     }
-  }
+  };
 
   return {
-    bookings: filteredBookings,
+    bookings: filteredBookings(),
     loading,
     error,
     view,
     setView,
     addBooking,
     removeBooking
-  }
+  };
 }
