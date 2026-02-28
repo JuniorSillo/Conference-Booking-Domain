@@ -5,6 +5,7 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-brand">
         <h2>Conference Bookings</h2>
+        {token && <button onClick={onLogout}>Logout</button>} {/* ← pass onLogout from App */}
       </div>
 
       <div className="navbar-links">

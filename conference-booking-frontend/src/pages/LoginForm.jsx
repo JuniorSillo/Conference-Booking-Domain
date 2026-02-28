@@ -1,96 +1,78 @@
 import { useState, useEffect } from "react";
+import { useAuth } from '../hooks/useAuth.js'; 
+import Button from '../components/Button.jsx';
 
-// Base API URL from Vite environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export default function LoginForm() {
+  // Form fields
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-export function LoginForm() {
-  // ── Form field state ──────────────────────────────────────────────────────
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
+  // UI states
+  const [errors, setErrors] = useState({});         
+  const [serverError, setServerError] = useState(''); 
+  const [loading, setLoading] = useState(false);     
 
-  // ── UI / async state ──────────────────────────────────────────────────────
-  const [errors, setErrors]         = useState({});   // field-level validation errors
-  const [serverError, setServerError] = useState(""); // error message returned by the API
-  const [success, setSuccess]       = useState(false); // true after a successful login
-  const [loading, setLoading]       = useState(false); // true while the fetch is in-flight
+  // Get login function from auth hook
+  const { login } = useAuth();
 
-  // ── Clear server-level error whenever the user starts typing again ────────
+  // Clear server error when user types again
   useEffect(() => {
-    if (serverError) setServerError("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (serverError) setServerError('');
   }, [email, password]);
 
-  // ── Client-side validation ────────────────────────────────────────────────
+  // Client-side validation
   const validate = () => {
     const newErrors = {};
 
     if (!email.trim()) {
-      newErrors.email = "Email is required.";
+      newErrors.email = 'Email is required.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.email = 'Please enter a valid email address.';
     }
 
     if (!password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = 'Password is required.';
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters.";
+      newErrors.password = 'Password must be at least 6 characters.';
     }
 
     return newErrors;
   };
 
-  // ── Submit handler ────────────────────────────────────────────────────────
+  // Form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Run validation; stop early if there are errors
+    // 1. Client validation
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // Clear previous errors and start loading
+    // 2. Clear errors, start loading
     setErrors({});
-    setServerError("");
+    setServerError('');
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  credentials: "include", 
-  body: JSON.stringify({ email, password }),
-});
+      // 3. Call real login from useAuth hook
+      await login(email, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        
-        setServerError(data?.message || "Login failed. Please try again.");
-        return;
-      }
-
-      // ── Success path ──────────────────────────────────────────────────────
-      // Store the JWT so it is available for subsequent authenticated requests
-      localStorage.setItem("token", data.token);
-      setSuccess(true);
-
-      // Optional: clear the form
-      setEmail("");
-      setPassword("");
-    } catch {
-      // Network error or JSON parse failure
-      setServerError("Unable to reach the server. Please check your connection.");
+      // 4. Success → redirect to dashboard
+      window.location.href = '/'; // or '/dashboard' if you have routing
+    } catch (err) {
+      // 5. Show backend error
+      const message = err.response?.data?.message || 'Login failed. Please try again.';
+      setServerError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Scoped styles ───────────────────────────────────────────────── */}
+      {/* Your beautiful scoped styles – unchanged */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -183,16 +165,6 @@ export function LoginForm() {
           margin-bottom: 1.25rem;
         }
 
-        .lf-success {
-          background: #f2faf5;
-          border: 1px solid #b7e4c7;
-          border-radius: 3px;
-          padding: 0.75rem 1rem;
-          font-size: 0.85rem;
-          color: #1e6b3e;
-          margin-bottom: 1.25rem;
-        }
-
         .lf-btn {
           width: 100%;
           padding: 0.8rem;
@@ -238,20 +210,13 @@ export function LoginForm() {
         }
       `}</style>
 
-      {/* ── Shell ───────────────────────────────────────────────────────── */}
+      {/* Shell */}
       <div className="lf-shell">
         <div className="lf-card">
           <p className="lf-eyebrow">Welcome back</p>
           <h1 className="lf-heading">Sign in</h1>
 
-          {/* Server-level success message */}
-          {success && (
-            <div className="lf-success" role="status">
-              You're signed in successfully.
-            </div>
-          )}
-
-          {/* Server-level error message */}
+          {/* Server error */}
           {serverError && (
             <div className="lf-server-error" role="alert">
               {serverError}
@@ -259,18 +224,18 @@ export function LoginForm() {
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            {/* ── Email ─────────────────────────────────────────────── */}
+            {/* Email */}
             <div className="lf-field">
               <label htmlFor="lf-email" className="lf-label">Email</label>
               <input
                 id="lf-email"
                 type="email"
-                className={`lf-input${errors.email ? " lf-input--error" : ""}`}
+                className={`lf-input${errors.email ? ' lf-input--error' : ''}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="you@example.com"
-                aria-describedby={errors.email ? "lf-email-err" : undefined}
+                aria-describedby={errors.email ? 'lf-email-err' : undefined}
               />
               {errors.email && (
                 <p id="lf-email-err" className="lf-error-msg" role="alert">
@@ -279,18 +244,18 @@ export function LoginForm() {
               )}
             </div>
 
-            {/* ── Password ──────────────────────────────────────────── */}
+            {/* Password */}
             <div className="lf-field">
               <label htmlFor="lf-password" className="lf-label">Password</label>
               <input
                 id="lf-password"
                 type="password"
-                className={`lf-input${errors.password ? " lf-input--error" : ""}`}
+                className={`lf-input${errors.password ? ' lf-input--error' : ''}`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 placeholder="••••••••"
-                aria-describedby={errors.password ? "lf-password-err" : undefined}
+                aria-describedby={errors.password ? 'lf-password-err' : undefined}
               />
               {errors.password && (
                 <p id="lf-password-err" className="lf-error-msg" role="alert">
@@ -299,10 +264,10 @@ export function LoginForm() {
               )}
             </div>
 
-            {/* ── Submit ────────────────────────────────────────────── */}
+            {/* Submit */}
             <button type="submit" className="lf-btn" disabled={loading}>
               {loading && <span className="lf-spinner" aria-hidden="true" />}
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>
@@ -310,5 +275,3 @@ export function LoginForm() {
     </>
   );
 }
-
-export default LoginForm;

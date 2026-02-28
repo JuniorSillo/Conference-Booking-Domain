@@ -1,6 +1,7 @@
 using ConferenceBooking.Domain.Models;
 using ConferenceBooking.Logic;
 using ConferenceBookingWebApi.Data;
+using ConferenceBookingWebApi.Hubs; 
 using ConferenceBookingWebApi.Middleware;
 using ConferenceBookingWebApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,6 +48,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Add SignalR
+builder.Services.AddSignalR();
+
 // Configure controllers with Newtonsoft JSON
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
@@ -87,7 +91,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Vite dev server
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -109,6 +113,10 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map SignalR Hub
+app.MapHub<BookingHub>("/bookingHub"); 
+
 app.MapControllers();
 
 // Seed database and load bookings at startup
@@ -141,7 +149,7 @@ app.Lifetime.ApplicationStarted.Register(async () =>
     var bookingManager = services.GetRequiredService<BookingManager>();
     await bookingManager.LoadBookingsAsync();
 
-    Console.WriteLine("✅ Backend started successfully with PostgreSQL + rooms seeded + CORS enabled.");
+    Console.WriteLine("✅ Backend started successfully with PostgreSQL + rooms seeded + CORS enabled + SignalR Hub mapped.");
 });
 
 app.Run();

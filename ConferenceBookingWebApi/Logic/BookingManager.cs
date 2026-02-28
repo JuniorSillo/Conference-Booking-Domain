@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ConferenceBooking.Data;
+using ConferenceBookingWebApi.Hubs;
+using Microsoft.AspNetCore.SignalR;  
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace ConferenceBooking.Logic;
 
@@ -76,6 +80,9 @@ public class BookingManager
 
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
+
+        var hubContext = _serviceProvider.GetRequiredService<IHubContext<BookingHub>>();
+await hubContext.Clients.Group("BookingsGroup").SendAsync("ReceiveBookingUpdate", "A booking was updated!");
 
         return booking;
     }

@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import './App.css'
-import Navbar from './components/Navbar.jsx'
-import Footer from './components/Footer.jsx'
-import BookingCard from './components/BookingCard.jsx'
-import BookingForm from './components/BookingForm.jsx'
-import LoginForm from './components/LoginForm.jsx' // <-- import LoginForm
-import { useBookings } from './hooks/useBookings.js'
+import { useAuth } from './hooks/useAuth.js'; 
+import LoginForm from './pages/LoginForm.jsx';
+import Navbar from './components/Navbar.jsx';
+import Footer from './components/Footer.jsx';
+import BookingCard from './components/BookingCard.jsx';
+import BookingForm from './components/BookingForm.jsx';
+import { useBookings } from './hooks/useBookings.js';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './App.css';
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('jwtToken') || null)
+  const { token, logout } = useAuth(); 
+
   const {
     bookings,
     loading,
@@ -18,60 +19,43 @@ function App() {
     view,
     setView,
     addBooking,
-    removeBooking,
-    fetchBookings
-  } = useBookings(token) 
-
-  // Fetch bookings automatically after login
-  useEffect(() => {
-    if (token) {
-      fetchBookings()
-        .catch((err) => toast.error(`Failed to fetch bookings: ${err.message}`))
-    }
-  }, [token])
-
-  // Handle login
-  const handleLogin = (jwtToken) => {
-    setToken(jwtToken)
-    localStorage.setItem('jwtToken', jwtToken)
-    toast.success('Login successful!')
-  }
-
-  // Handle logout
-  const handleLogout = () => {
-    setToken(null)
-    localStorage.removeItem('jwtToken')
-    toast.info('Logged out')
-  }
-
-  // Show login form if user is not logged in
+    removeBooking
+  } = useBookings(); 
+ 
   if (!token) {
     return (
       <div className="app-container">
-        {/* <Navbar /> */}
         <main className="main-content">
-          <LoginForm onLogin={handleLogin} />
+          <LoginForm /> 
         </main>
-        {/* <Footer /> */}
+        <Footer />
         <ToastContainer position="bottom-right" theme="dark" />
       </div>
-    )
+    );
   }
 
-  // Loading and error states for bookings
-  if (loading) return <div className="loading">Loading bookings from server...</div>
-  if (error)
+  
+  if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Loading bookings from server...</p>
+      </div>
+    );
+  }
+
+  if (error) {
     return (
       <div className="error">
-        Error: {error}{' '}
-        <button onClick={() => fetchBookings()}>Retry</button>
+        <p>Error: {error}</p>
+        <button onClick={() => window.location.reload()}>Retry</button>
       </div>
-    )
+    );
+  }
 
-  // Main bookings view
   return (
     <div className="app-container">
-      <Navbar onLogout={handleLogout} />
+      <Navbar onLogout={logout} /> {/* pass logout to Navbar */}
 
       <main className="main-content">
         <h1>My Bookings</h1>
@@ -85,7 +69,7 @@ function App() {
           </select>
         </div>
 
-        {view === 'upcoming' && <BookingForm onAddBooking={addBooking} token={token} />}
+        {view === 'upcoming' && <BookingForm onAddBooking={addBooking} />}
 
         <div className="bookings-grid">
           {bookings.length === 0 ? (
@@ -95,7 +79,7 @@ function App() {
               <BookingCard
                 key={booking.id}
                 booking={booking}
-                onDelete={() => removeBooking(booking.id, token)}
+                onDelete={() => removeBooking(booking.id)}
               />
             ))
           )}
@@ -109,7 +93,7 @@ function App() {
       <Footer />
       <ToastContainer position="bottom-right" theme="dark" />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
