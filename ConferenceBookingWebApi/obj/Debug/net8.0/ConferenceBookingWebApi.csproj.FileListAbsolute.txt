@@ -606,3 +606,4 @@ C:/Users/Training Center 1/Documents/Conference-Booking-DomainFullStack/Conferen
 /Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
 /Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/bin/Debug/net8.0/Microsoft.Extensions.ObjectPool.dll
 /Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/bin/Debug/net8.0/System.Net.WebSockets.WebSocketProtocol.dll
+/Users/cash/Pictures/Conference-Booking-Domain/ConferenceBookingWebApi/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.dll

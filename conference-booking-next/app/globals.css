@@ -1,0 +1,30 @@
+/* Tailwind v4 setup */
+@import "tailwindcss/preflight"; 
+@tailwind utilities; 
+
+/* Custom Theme Variables */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Dark mode variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+  }
+}
+
+/* Base body styles using Tailwind */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

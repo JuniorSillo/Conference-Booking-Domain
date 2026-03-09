@@ -6,21 +6,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection; 
+using Microsoft.AspNetCore.SignalR;
+using ConferenceBookingWebApi.Hubs; 
 using ConferenceBooking.Data;
-using ConferenceBookingWebApi.Hubs;
-using Microsoft.AspNetCore.SignalR;  
-using Microsoft.Extensions.DependencyInjection;
-
 
 namespace ConferenceBooking.Logic;
 
 public class BookingManager
 {
     private readonly ApplicationDbContext _context;
+    private readonly IServiceProvider _serviceProvider; // ← NEW field for SignalR
 
-    public BookingManager(ApplicationDbContext context)
+    public BookingManager(ApplicationDbContext context, IServiceProvider serviceProvider)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider)); // ← NEW constructor param
     }
 
     public async Task LoadBookingsAsync()
@@ -81,8 +82,9 @@ public class BookingManager
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
 
+        // SignalR broadcast (extra credit – real-time update)
         var hubContext = _serviceProvider.GetRequiredService<IHubContext<BookingHub>>();
-await hubContext.Clients.Group("BookingsGroup").SendAsync("ReceiveBookingUpdate", "A booking was updated!");
+        await hubContext.Clients.All.SendAsync("ReceiveBookingUpdate", "New booking created!");
 
         return booking;
     }
@@ -112,6 +114,10 @@ await hubContext.Clients.Group("BookingsGroup").SendAsync("ReceiveBookingUpdate"
         _context.Bookings.Add(updated);
         await _context.SaveChangesAsync();
 
+        // SignalR broadcast
+        var hubContext = _serviceProvider.GetRequiredService<IHubContext<BookingHub>>();
+        await hubContext.Clients.All.SendAsync("ReceiveBookingUpdate", "Booking updated!");
+
         return true;
     }
 
@@ -126,6 +132,10 @@ await hubContext.Clients.Group("BookingsGroup").SendAsync("ReceiveBookingUpdate"
         booking.UpdateStatus(BookingStatus.Cancelled);
         await _context.SaveChangesAsync();
 
+        // SignalR broadcast
+        var hubContext = _serviceProvider.GetRequiredService<IHubContext<BookingHub>>();
+        await hubContext.Clients.All.SendAsync("ReceiveBookingUpdate", "Booking cancelled!");
+
         return true;
     }
 
@@ -136,6 +146,10 @@ await hubContext.Clients.Group("BookingsGroup").SendAsync("ReceiveBookingUpdate"
 
         _context.Bookings.Remove(booking);
         await _context.SaveChangesAsync();
+
+        // SignalR broadcast
+        var hubContext = _serviceProvider.GetRequiredService<IHubContext<BookingHub>>();
+        await hubContext.Clients.All.SendAsync("ReceiveBookingUpdate", "Booking deleted!");
 
         return true;
     }
