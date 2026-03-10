@@ -1,0 +1,38 @@
+"use client"; 
+interface Props {
+  bookings: Array<unknown>; 
+  view: string;
+  category: string;
+  isSyncing: boolean;
+  onDelete: (id: string) => void;
+}
+
+function BookingList({ bookings, view, category, isSyncing, onDelete }: Props) {
+  const viewLabel = view.charAt(0).toUpperCase() + view.slice(1);
+
+  return (
+    <>
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${isSyncing ? 'opacity-50' : ''}`}>
+        {bookings.length === 0 ? (
+          <p className="text-center text-gray-500 col-span-3">
+            No {view} bookings{category !== 'All' ? ` in "${category}"` : ''}.
+          </p>
+        ) : (
+          bookings.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              onDelete={view === 'upcoming' ? onDelete : null}
+            />
+          ))
+        )}
+      </div>
+
+      <p className="mt-4 text-sm text-gray-600">
+        {viewLabel} bookings: <strong>{bookings.length}</strong>
+      </p>
+    </>
+  );
+}
+
+export default BookingList;

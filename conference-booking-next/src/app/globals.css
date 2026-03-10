@@ -1,6 +1,4 @@
-/* Tailwind v4 setup */
-@import "tailwindcss/preflight"; 
-@tailwind utilities; 
+@import "tailwindcss";
 
 /* Custom Theme Variables */
 :root {
