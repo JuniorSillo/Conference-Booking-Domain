@@ -2,23 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../context/AuthContext'; // ← our new context (no more hooks/useAuth)
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const [email, setEmail]             = useState('');
-  const [password, setPassword]       = useState('');
-  const [error, setError]             = useState('');
-  const [isLoading, setIsLoading]     = useState(false);
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
+  const [error, setError]               = useState('');
+  const [isLoading, setIsLoading]       = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, user } = useAuth();
   const router = useRouter();
 
-  // If already authenticated, skip the form and go straight to the right page
+  // If already logged in, go straight to dashboard
   useEffect(() => {
-    if (user?.loggedIn) {
-      redirectByRole(user.roles, router);
-    }
+    if (user?.loggedIn) router.replace('/dashboard');
   }, [user?.loggedIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,14 +25,9 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      // login() stores the user in context AND localStorage.
-      // Read it back immediately so we can redirect before the next render.
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        redirectByRole(JSON.parse(stored).roles, router);
-      }
+      // ALL roles go to /dashboard — role-based sections are handled there
+      router.push('/dashboard');
     } catch (err: any) {
-      // Prefer the API's own error message, fall back to a generic one
       setError(
         err.response?.data?.message ||
         err.message ||
@@ -54,7 +47,12 @@ export default function LoginPage() {
         <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-2.5">
-          
+          <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <span className="text-white/70 font-semibold text-sm tracking-tight">Conference Booking System</span>
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -98,42 +96,26 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                Email
-              </label>
+              <label htmlFor="email" className="block text-xs font-medium text-zinc-400 uppercase tracking-wider">Email</label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                autoComplete="email"
-                placeholder="you@example.com"
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                id="email" type="email" value={email} autoComplete="email"
+                placeholder="you@example.com" onChange={e => setEmail(e.target.value)} required
                 className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm rounded-lg px-3.5 py-2.5 placeholder-zinc-600 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-150"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                Password
-              </label>
+              <label htmlFor="password" className="block text-xs font-medium text-zinc-400 uppercase tracking-wider">Password</label>
               <div className="relative">
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  id="password" type={showPassword ? 'text' : 'password'} value={password}
+                  autoComplete="current-password" placeholder="••••••••"
+                  onChange={e => setPassword(e.target.value)} required
                   className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm rounded-lg px-3.5 py-2.5 pr-10 placeholder-zinc-600 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-150"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
                   {showPassword ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
@@ -148,11 +130,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg py-2.5 transition-all duration-150 flex items-center justify-center gap-2 mt-2"
-            >
+            <button type="submit" disabled={isLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg py-2.5 transition-all duration-150 flex items-center justify-center gap-2 mt-2">
               {isLoading ? (
                 <>
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -161,9 +140,7 @@ export default function LoginPage() {
                   </svg>
                   Signing in…
                 </>
-              ) : (
-                'Sign in'
-              )}
+              ) : 'Sign in'}
             </button>
           </form>
 
@@ -171,14 +148,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
-
-// ─── Role-based redirect helper ───────────────────────────────────────────────
-function redirectByRole(roles: string[], router: ReturnType<typeof useRouter>) {
-  if (roles.includes('Admin')) {
-    router.push('/dashboard');
-  } else {
-    // Any non-admin role lands on bookings
-    router.push('/bookings');
-  }
 }

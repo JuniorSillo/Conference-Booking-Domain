@@ -86,15 +86,19 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<SeedData>();
 builder.Services.AddScoped<BookingManager>();
 
-// Configure CORS
+// Configure CORS — allows both the old Vite dev server and the new Next.js dev server
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        policy
+            .WithOrigins(
+                "http://localhost:5173",  // Vite (previous frontend)
+                "http://localhost:3000"   // Next.js (current frontend)
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -110,7 +114,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend");       // ← must come before UseAuthentication
 app.UseAuthentication();
 app.UseAuthorization();
 
