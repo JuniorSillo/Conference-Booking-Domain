@@ -1,10 +1,3 @@
-// app/layout.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// This file stays a SERVER Component — do NOT add "use client" here.
-// The AuthProvider is a Client Component and forms the client boundary;
-// everything above it (metadata, html/body shell) stays server-rendered.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
@@ -24,11 +17,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {/*
-          AuthProvider is the client boundary.
-          ClientNavbar and all page children can now call useAuth()
-          without this layout losing its Server Component benefits.
-        */}
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
             <ClientNavbar />

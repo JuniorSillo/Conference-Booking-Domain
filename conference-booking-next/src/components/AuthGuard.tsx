@@ -8,15 +8,6 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
-/**
- * Wrap any page or layout that requires authentication.
- *
- * Usage (e.g. app/dashboard/layout.tsx):
- *   import AuthGuard from "../../components/AuthGuard";
- *   export default function DashboardLayout({ children }) {
- *     return <AuthGuard>{children}</AuthGuard>;
- *   }
- */
 export default function AuthGuard({ children }: AuthGuardProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();

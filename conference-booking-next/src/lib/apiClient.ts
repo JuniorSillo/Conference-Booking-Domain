@@ -1,7 +1,5 @@
 import axios from "axios";
 
-// Explicit fallback guarantees the correct URL even if the env var
-// fails to load (e.g. .env.local in wrong location during development).
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5051/api";
 
@@ -11,14 +9,14 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// ── Mutable reference to the logout function from AuthContext ─────────────────
+// ── Mutable reference to the logout function from AuthContext
 let _logout: (() => void) | null = null;
 
 export function setAuthLogout(fn: () => void) {
   _logout = fn;
 }
 
-// ── Request interceptor — attach JWT from localStorage ────────────────────────
+// ── Request interceptor — attach JWT from localStorage
 apiClient.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -28,7 +26,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Response interceptor — handle 401 via context logout ─────────────────────
+// ── Response interceptor — handle 401 via context logout 
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {

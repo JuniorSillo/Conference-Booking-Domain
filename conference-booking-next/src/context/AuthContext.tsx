@@ -10,14 +10,14 @@ import {
 } from "react";
 import apiClient, { setAuthLogout } from "../lib/apiClient";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
-// Matches exactly what your API returns inside the "user" object
+
+
 export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
-  roles: string[];    // e.g. ["Admin"]
+  roles: string[];   
   loggedIn: boolean;
 }
 
@@ -36,20 +36,20 @@ interface AuthContextValue {
   isLoading: boolean;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context 
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Provider
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
-  // isLoading stays true until localStorage hydration is complete,
-  // so AuthGuard never flashes a redirect before we know the auth state.
+  
+  //AuthGuard never flashes a redirect before we know the auth state.
   const [isLoading, setIsLoading] = useState(true);
 
-  // ── Hydrate from localStorage on first mount ──────────────────────────────
+  
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem("token");
@@ -68,16 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ── Login ─────────────────────────────────────────────────────────────────
+  // ── Login 
   const login = useCallback(async (email: string, password: string) => {
     // apiClient response interceptor unwraps response.data already,
-    // so `data` is the parsed JSON body directly.
     const data = await apiClient.post<any, LoginApiResponse>(
       "/auth/login",
       { email, password }
     );
 
-    // Attach loggedIn flag so any component can do a simple user?.loggedIn check
     const profile: UserProfile = { ...data.user, loggedIn: true };
 
     // Persist so the session survives a page refresh
@@ -88,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
   }, []);
 
-  // ── Logout ────────────────────────────────────────────────────────────────
+  // ── Logout
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -96,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  // ── Wire Axios 401 interceptor to context logout (extra credit) ───────────
+  // (extra credit) 
   // Must be declared AFTER logout above.
   useEffect(() => {
     setAuthLogout(logout);
@@ -109,12 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── useAuth Hook ─────────────────────────────────────────────────────────────
-
-/**
- * Consume auth state from any Client Component:
- *   const { user, login, logout, token, isLoading } = useAuth();
- */
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) {
