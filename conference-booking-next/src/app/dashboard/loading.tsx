@@ -1,4 +1,3 @@
-
 function SkeletonBlock({ className }: { className?: string }) {
   return (
     <div className={`bg-zinc-800 rounded-lg animate-pulse ${className ?? ''}`} />

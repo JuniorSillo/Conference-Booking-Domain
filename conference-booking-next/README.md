@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Conference Booking System — Assignment 3.3 Production Polish
 
-## Getting Started
+## Tech Stack
+- **Frontend:** Next.js 15 (App Router), React, TypeScript, Tailwind CSS, Axios
+- **Backend:** .NET 8 Web API, PostgreSQL, Entity Framework Core, SignalR
+- **Auth:** JWT Bearer tokens via ASP.NET Identity
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Performance Optimizations
+
+### How I Identified the Bottleneck
+Using **React DevTools Profiler**, I recorded a session of typing in the
+search bar on the bookings dashboard. The flame graph showed the entire
+booking table re-rendering on **every keystroke** — even though the data
+hadn't changed yet. Two problems were visible:
+
+1. The filtered bookings array was being recalculated on every render
+2. The `handleCancel` and `handleDelete` functions were new references
+   on every render, causing all table rows to re-render unnecessarily
+
+### How I Resolved It
+
+**useMemo — filtered & sorted bookings**
+```ts
+const processedBookings = useMemo(() => {
+  let result = [...allBookings];
+  if (debouncedSearch.trim()) {
+    result = result.filter(b => b.roomName.toLowerCase().includes(term));
+  }
+  result.sort(...);
+  return result;
+}, [allBookings, debouncedSearch, sortField, sortOrder]);
+```
+This only recalculates when the underlying data or sort/filter state
+changes — not on every render.
+
+**useMemo — stats strip**
+```ts
+const stats = useMemo(() => ({
+  total:     totalCount,
+  approved:  allBookings.filter(b => b.status === "Approved").length,
+  ...
+}), [allBookings, totalCount]);
+```
+Status counts only recalculate when the bookings array changes.
+
+**useCallback — action handlers**
+```ts
+const handleCancel = useCallback(async (id) => { ... }, [page, fetchBookings, flash]);
+const handleDelete = useCallback(async (id) => { ... }, [page, fetchBookings, flash]);
+const handleEdit   = useCallback((b) => setEditTarget(b), []);
+```
+Stable function references prevent child rows from re-rendering when
+unrelated state (like the search input) changes.
+
+---
+
+## Debounced Search
+
+**File:** `src/hooks/useDebounce.ts`
+
+```ts
+export function useDebounce<T>(value: T, delay = 400): T {
+  const [debounced, setDebounced] = useState<T>(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Used in the dashboard:
+```ts
+const debouncedSearch = useDebounce(searchInput, 400);
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The user sees instant visual feedback (a pulsing `…` indicator appears),
+but the expensive filter calculation and any API calls only fire 400ms
+after the last keystroke. This prevents flooding the backend with a
+request for every character typed.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Resilient UI Patterns
 
-To learn more about Next.js, take a look at the following resources:
+### loading.tsx
+**File:** `src/app/dashboard/loading.tsx`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js automatically renders this file while the dashboard page is
+fetching data. It shows an animated skeleton that mirrors the exact
+layout of the real page — stats strip, search bar, table rows — so
+the user never sees a blank screen or a generic spinner.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### error.tsx
+**File:** `src/app/dashboard/error.tsx`
 
-## Deploy on Vercel
+Next.js wraps the dashboard in an Error Boundary that catches any
+runtime errors thrown by the page (including network failures when the
+.NET backend is offline). The `reset` prop retries rendering the page
+component without a full browser refresh. It detects network errors
+and shows a specific message guiding the developer to check port 5051.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Full Request Chain
+
+```
+User types in search box
+  → useDebounce waits 400ms
+  → processedBookings (useMemo) recalculates
+  → if page changes: fetchBookings() fires
+    → apiClient.interceptors.request adds Bearer token
+    → POST/GET http://localhost:5051/api/bookings
+      → .NET BookingsController [Authorize] validates JWT
+        → BookingManager queries PostgreSQL via EF Core
+          → Returns PagedResultDto<BookingSummaryDto>
+        → Response flows back to Axios
+    → apiClient.interceptors.response unwraps response.data
+      → on 401: calls logout() from AuthContext
+    → React state updates → UI re-renders
+```
+
+---
+
+## Environment Strategy
+
+| File | Purpose |
+|---|---|
+| `.env.local` | Development — `NEXT_PUBLIC_API_BASE_URL=http://localhost:5051/api` |
+| `.env.production` | Production — set to deployed API URL |
+
+`NEXT_PUBLIC_` prefix exposes the variable to the browser bundle.
+The `??` fallback in `apiClient.ts` ensures the app never silently
+fails if the env file is missing.
+
+
